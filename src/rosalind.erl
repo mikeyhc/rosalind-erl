@@ -34,6 +34,7 @@ dna_commands([]) ->
 dna_commands([Command|Args]) ->
     case Command of
         "count" -> dna_count(Args);
+        "rna" -> dna_to_rna(Args);
         _ ->
             io:format("unknown command ~s~n", [Command]),
             dna_count_usage(),
@@ -45,15 +46,20 @@ usage() ->
     io:format("group~n"),
     io:format("  dna     operations on dna~n~n"),
     io:format("dna commands~n"),
-    io:format("  count   count all the symbols in the string~n").
+    io:format("  count   count all the symbols in the string~n"),
+    io:format("  rna     convert DNA to RNA~n").
 
 dna_usage() ->
     io:format("usage: ~s dna COMMAND~n~n", [escript:script_name()]),
     io:format("commands~n"),
-    io:format("  count   count all the symbols in the string~n").
+    io:format("  count   count all the symbols in the string~n"),
+    io:format("  rna     convert DNA to RNA~n").
 
 dna_count_usage() ->
     io:format("usage: ~s dna count <path>~n", [escript:script_name()]).
+
+dna_to_rna_usage() ->
+    io:format("usage: ~s dna rna <path>~n", [escript:script_name()]).
 
 dna_count([Path]) ->
     {ok, DNA} = dna:from_file(Path),
@@ -61,4 +67,11 @@ dna_count([Path]) ->
     io:format("A: ~p; C: ~p; G: ~p; T: ~p~n", [As, Cs, Gs, Ts]);
 dna_count(_) ->
     dna_count_usage(),
+    erlang:halt(1).
+
+dna_to_rna([Path]) ->
+    {ok, DNA} = dna:from_file(Path),
+    io:format(dna:to_rna(DNA));
+dna_to_rna(_) ->
+    dna_to_rna_usage(),
     erlang:halt(1).
