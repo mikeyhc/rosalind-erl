@@ -10,81 +10,97 @@
 %% escript Entry point
 main([]) ->
     io:format("no group provided~n"),
-    usage(),
+    usage(command_list()),
     erlang:halt(1);
 main([Group|Args]) ->
-    case Group of
-        "dna" -> dna_commands(Args);
-        _ ->
+    case maps:get(Group, command_list(), false) of
+        false ->
             %% TODO print to stderr
             io:format("command ~s unknown~n", [Group]),
-            usage(),
-            erlang:halt(1)
+            usage(command_list()),
+            erlang:halt(1);
+        Command ->
+            handle_command(Command, Group, Args)
     end.
 
 %%====================================================================
 %% Internal functions
 %%====================================================================
 
-dna_commands([]) ->
+command_list() ->
+    #{"dna" =>
+      #{description => "operations on DNA",
+        commands =>
+        #{"count" =>
+          #{description => "count all the symbols in the string",
+            function => fun dna_count/1},
+          "rna" =>
+          #{description => "convert DNA to RNA",
+            function => fun dna_to_rna/1},
+          "compliment" =>
+          #{description => "convert the DNA to its compliment",
+            function => fun dna_compliment/1}}}}.
+
+handle_command(Commands, Group, []) ->
     %% TODO stderr
     io:format("no command provided~n"),
-    dna_usage(),
+    command_usage(Group, Commands),
     erlang:halt(1);
-dna_commands([Command|Args]) ->
-    case Command of
-        "count" -> dna_count(Args);
-        "rna" -> dna_to_rna(Args);
-        "compliment" -> dna_compliment(Args);
-        _ ->
+handle_command(#{commands := Commands}, Group, [Command|Args]) ->
+    case maps:get(Command, Commands, false) of
+        false ->
             io:format("unknown command ~s~n", [Command]),
-            dna_count_usage(),
-            erlang:halt(1)
+            command_usage(Group, Commands),
+            erlang:halt(1);
+        Obj ->
+            handle_subcommand(Group, Command, Obj, Args)
     end.
 
-usage() ->
-    io:format("usage: ~s GROUP COMMAND~n~n", [escript:script_name()]),
-    io:format("group~n"),
-    io:format("  dna     operations on dna~n~n"),
-    io:format("dna commands~n"),
-    io:format("  count       count all the symbols in the string~n"),
-    io:format("  rna         convert DNA to RNA~n"),
-    io:format("  compliment  conver the DNA to its compliment~n").
+handle_subcommand(Group, Command, _, []) ->
+    io:format("usage: ~s ~s ~s <path>~n",
+              [escript:script_name(), Group, Command]);
+handle_subcommand(_Group, _Command, #{function := F}, [Arg]) ->
+    F(Arg).
 
-dna_usage() ->
-    io:format("usage: ~s dna COMMAND~n~n", [escript:script_name()]),
+%% usage functions
+
+command_usage(Group, #{commands := Command}) ->
+    io:format("usage: ~s ~s COMMAND~n~n", [escript:script_name(), Group]),
     io:format("commands~n"),
-    io:format("  count       count all the symbols in the string~n"),
-    io:format("  rna         convert DNA to RNA~n"),
-    io:format("  compliment  conver the DNA to its compliment~n").
+    F = fun({Key, #{description := Desc}}) ->
+                io:format("  ~s  ~s~n", [string:left(Key, 10), Desc])
+        end,
+    lists:foreach(F, maps:to_list(Command)).
 
-dna_count_usage() ->
-    io:format("usage: ~s dna count <path>~n", [escript:script_name()]).
+usage(Commands) ->
+    io:format("usage: ~s GROUP COMMAND~n~n", [escript:script_name()]),
+    io:format("groups~n"),
+    PrintCmd = fun({Key, #{description := Desc}}) ->
+                       io:format("    ~s  ~s~n", [string:left(Key, 10), Desc])
+               end,
+    lists:foreach(PrintCmd, maps:to_list(Commands)),
+    io:format("~n"),
+    lists:foreach(fun print_command/1, maps:to_list(Commands)).
 
-dna_to_rna_usage() ->
-    io:format("usage: ~s dna rna <path>~n", [escript:script_name()]).
+print_command({Key, #{commands := Commands}}) ->
+    io:format("~s commands~n", [Key]),
+    F = fun({Cmd, #{description := Desc}}) ->
+                io:format("    ~s  ~s~n", [string:left(Cmd, 10), Desc])
+        end,
+    lists:foreach(F, maps:to_list(Commands)),
+    io:format("~n").
 
-dna_compliment_usage() ->
-    io:format("usage: ~s dna compliment <path>~n", [escript:script_name()]).
+%% dna functions
 
-dna_count([Path]) ->
+dna_count(Path) ->
     {ok, DNA} = dna:from_file(Path),
     #{$A := As, $C := Cs, $G := Gs, $T := Ts} = dna:count(DNA),
-    io:format("A: ~p; C: ~p; G: ~p; T: ~p~n", [As, Cs, Gs, Ts]);
-dna_count(_) ->
-    dna_count_usage(),
-    erlang:halt(1).
+    io:format("A: ~p; C: ~p; G: ~p; T: ~p~n", [As, Cs, Gs, Ts]).
 
-dna_to_rna([Path]) ->
+dna_to_rna(Path) ->
     {ok, DNA} = dna:from_file(Path),
-    io:format("~s~n", [dna:to_rna(DNA)]);
-dna_to_rna(_) ->
-    dna_to_rna_usage(),
-    erlang:halt(1).
+    io:format("~s~n", [dna:to_rna(DNA)]).
 
-dna_compliment([Path]) ->
+dna_compliment(Path) ->
     {ok, DNA} = dna:from_file(Path),
-    io:format("~s~n", [dna:compliment(DNA)]);
-dna_compliment(_) ->
-    dna_compliment_usage(),
-    erlang:halt(1).
+    io:format("~s~n", [dna:compliment(DNA)]).
