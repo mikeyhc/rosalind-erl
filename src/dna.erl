@@ -1,6 +1,6 @@
 -module(dna).
 
--export([from_file/1, count/1, to_rna/1, compliment/1]).
+-export([from_file/1, count/1, to_rna/1, compliment/1, highest_gc/1]).
 
 from_file(Path) ->
     {ok, Bin} = file:read_file(Path),
@@ -21,3 +21,17 @@ compliment(DNA) ->
                  (10, Acc) -> Acc
               end,
     lists:foldl(Convert, [], DNA).
+
+highest_gc(DNAs) ->
+    F = fun({K, C}) -> {K, calculate_content(C)} end,
+    Contents = lists:map(F, DNAs),
+    [H|_] = lists:reverse(lists:keysort(2, Contents)),
+    H.
+
+calculate_content(S) ->
+    F = fun($G, {GC, T}) -> {GC + 1, T + 1};
+           ($C, {GC, T}) -> {GC + 1, T + 1};
+           (_, {GC, T}) -> {GC, T + 1}
+        end,
+    {GCs, Total} = lists:foldl(F, {0, 0}, S),
+    GCs / Total * 100.

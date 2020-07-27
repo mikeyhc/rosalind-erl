@@ -39,7 +39,16 @@ command_list() ->
             function => fun dna_to_rna/1},
           "compliment" =>
           #{description => "convert the DNA to its compliment",
-            function => fun dna_compliment/1}}}}.
+            function => fun dna_compliment/1},
+          "gc" =>
+          #{description => "determine the string with the highest GC content",
+            function => fun gc/1}}},
+       "math" =>
+       #{description => "math based functions",
+         commands =>
+         #{"fib" =>
+           #{description => "calculate the fibonacci sequence",
+             function => fun fib/1}}}}.
 
 handle_command(Commands, Group, []) ->
     %% TODO stderr
@@ -59,7 +68,7 @@ handle_command(#{commands := Commands}, Group, [Command|Args]) ->
 handle_subcommand(Group, Command, _, []) ->
     io:format("usage: ~s ~s ~s <path>~n",
               [escript:script_name(), Group, Command]);
-handle_subcommand(_Group, _Command, #{function := F}, [Arg]) ->
+handle_subcommand(_Group, _Command, #{function := F}, Arg) ->
     F(Arg).
 
 %% usage functions
@@ -92,15 +101,24 @@ print_command({Key, #{commands := Commands}}) ->
 
 %% dna functions
 
-dna_count(Path) ->
+dna_count([Path]) ->
     {ok, DNA} = dna:from_file(Path),
     #{$A := As, $C := Cs, $G := Gs, $T := Ts} = dna:count(DNA),
     io:format("A: ~p; C: ~p; G: ~p; T: ~p~n", [As, Cs, Gs, Ts]).
 
-dna_to_rna(Path) ->
+dna_to_rna([Path]) ->
     {ok, DNA} = dna:from_file(Path),
     io:format("~s~n", [dna:to_rna(DNA)]).
 
-dna_compliment(Path) ->
+dna_compliment([Path]) ->
     {ok, DNA} = dna:from_file(Path),
     io:format("~s~n", [dna:compliment(DNA)]).
+
+fib([N, K]) ->
+    io:format("~w~n",
+              [rosalind_math:fib(list_to_integer(N), list_to_integer(K))]).
+
+gc(Filename) ->
+    Fasta = fasta:read_file(Filename),
+    {Name, Content} = dna:highest_gc(Fasta),
+    io:format("~s~n~9.6f~n", [Name, Content]).
