@@ -51,7 +51,10 @@ command_list() ->
          commands =>
          #{"fib" =>
            #{description => "calculate the fibonacci sequence",
-             function => fun fib/1}}}}.
+             function => fun fib/1},
+           "iprb" =>
+           #{description => "calculate the probably of a homozygous dominant",
+             function => fun iprb/1}}}}.
 
 handle_command(Commands, Group, []) ->
     %% TODO stderr
@@ -131,3 +134,8 @@ hamm([Path]) ->
 fib([N, K]) ->
     io:format("~w~n",
               [rosalind_math:fib(list_to_integer(N), list_to_integer(K))]).
+
+iprb([K, M, N]) ->
+    io:format("~f~n",
+              [rosalind_math:iprb(list_to_integer(K), list_to_integer(M),
+                                  list_to_integer(N))]).
