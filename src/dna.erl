@@ -1,10 +1,12 @@
 -module(dna).
 
--export([from_file/1, count/1, to_rna/1, compliment/1, highest_gc/1]).
+-export([from_file/1, count/1, to_rna/1, compliment/1, highest_gc/1,
+         hamming/2]).
 
 from_file(Path) ->
     {ok, Bin} = file:read_file(Path),
-    {ok, string:trim(binary:bin_to_list(Bin))}.
+    {ok, lists:filter(fun(X) -> X =/= [] end,
+                      string:split(binary:bin_to_list(Bin), "\n", all))}.
 
 count(DNA) ->
     Inc = fun(V) -> V  + 1 end,
@@ -35,3 +37,10 @@ calculate_content(S) ->
         end,
     {GCs, Total} = lists:foldl(F, {0, 0}, S),
     GCs / Total * 100.
+
+hamming(S1, S2) ->
+    Zipped = lists:zip(S1, S2),
+    F = fun({X, X}, Acc) -> Acc;
+           (_, Acc) -> Acc + 1
+        end,
+    lists:foldl(F, 0, Zipped).

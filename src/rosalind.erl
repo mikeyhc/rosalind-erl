@@ -42,7 +42,10 @@ command_list() ->
             function => fun dna_compliment/1},
           "gc" =>
           #{description => "determine the string with the highest GC content",
-            function => fun gc/1}}},
+            function => fun gc/1},
+          "hamm" =>
+          #{description => "calculate the hamming distance between two strings",
+            function => fun hamm/1}}},
        "math" =>
        #{description => "math based functions",
          commands =>
@@ -102,23 +105,29 @@ print_command({Key, #{commands := Commands}}) ->
 %% dna functions
 
 dna_count([Path]) ->
-    {ok, DNA} = dna:from_file(Path),
+    {ok, [DNA]} = dna:from_file(Path),
     #{$A := As, $C := Cs, $G := Gs, $T := Ts} = dna:count(DNA),
     io:format("A: ~p; C: ~p; G: ~p; T: ~p~n", [As, Cs, Gs, Ts]).
 
 dna_to_rna([Path]) ->
-    {ok, DNA} = dna:from_file(Path),
+    {ok, [DNA]} = dna:from_file(Path),
     io:format("~s~n", [dna:to_rna(DNA)]).
 
 dna_compliment([Path]) ->
-    {ok, DNA} = dna:from_file(Path),
+    {ok, [DNA]} = dna:from_file(Path),
     io:format("~s~n", [dna:compliment(DNA)]).
-
-fib([N, K]) ->
-    io:format("~w~n",
-              [rosalind_math:fib(list_to_integer(N), list_to_integer(K))]).
 
 gc(Filename) ->
     Fasta = fasta:read_file(Filename),
     {Name, Content} = dna:highest_gc(Fasta),
     io:format("~s~n~9.6f~n", [Name, Content]).
+
+hamm([Path]) ->
+    {ok, [S1, S2]} = dna:from_file(Path),
+    io:format("~w~n", [dna:hamming(S1, S2)]).
+
+%% math functions
+
+fib([N, K]) ->
+    io:format("~w~n",
+              [rosalind_math:fib(list_to_integer(N), list_to_integer(K))]).
