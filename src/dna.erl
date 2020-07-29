@@ -1,12 +1,6 @@
 -module(dna).
 
--export([from_file/1, count/1, to_rna/1, compliment/1, highest_gc/1,
-         hamming/2]).
-
-from_file(Path) ->
-    {ok, Bin} = file:read_file(Path),
-    {ok, lists:filter(fun(X) -> X =/= [] end,
-                      string:split(binary:bin_to_list(Bin), "\n", all))}.
+-export([count/1, to_rna/1, compliment/1, highest_gc/1, hamming/2]).
 
 count(DNA) ->
     Inc = fun(V) -> V  + 1 end,

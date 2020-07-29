@@ -33,28 +33,49 @@ command_list() ->
         commands =>
         #{"count" =>
           #{description => "count all the symbols in the string",
+            arg => "PATH",
             function => fun dna_count/1},
           "rna" =>
           #{description => "convert DNA to RNA",
+            arg => "PATH",
             function => fun dna_to_rna/1},
           "compliment" =>
           #{description => "convert the DNA to its compliment",
+            arg => "PATH",
             function => fun dna_compliment/1},
           "gc" =>
           #{description => "determine the string with the highest GC content",
+            arg => "PATH",
             function => fun gc/1},
           "hamm" =>
           #{description => "calculate the hamming distance between two strings",
+            arg => "PATH",
             function => fun hamm/1}}},
-       "math" =>
-       #{description => "math based functions",
-         commands =>
-         #{"fib" =>
-           #{description => "calculate the fibonacci sequence",
-             function => fun fib/1},
-           "iprb" =>
-           #{description => "calculate the probably of a homozygous dominant",
-             function => fun iprb/1}}}}.
+      "math" =>
+      #{description => "math based functions",
+        commands =>
+        #{"fib" =>
+          #{description => "calculate the fibonacci sequence",
+            arg => "K M",
+            function => fun fib/1},
+          "iprb" =>
+          #{description => "calculate the probably of a homozygous dominant",
+            arg => "K M N",
+            function => fun iprb/1}}},
+      "rna" =>
+      #{description => "operations on RNA",
+        commands =>
+        #{"prot" =>
+          #{description => "convert an RNA to a protein",
+            arg => "PATH",
+            function => fun prot/1}}},
+     "string" =>
+     #{description => "operations on strings",
+      commands =>
+      #{"subs" =>
+        #{description => "find all occurances of the prefix in the string",
+         arg => "PATH",
+         function => fun subs/1}}}}.
 
 handle_command(Commands, Group, []) ->
     %% TODO stderr
@@ -68,13 +89,14 @@ handle_command(#{commands := Commands}, Group, [Command|Args]) ->
             command_usage(Group, Commands),
             erlang:halt(1);
         Obj ->
-            handle_subcommand(Group, Command, Obj, Args)
+            #{arg := ExpectedArgs} = Obj,
+            handle_subcommand(Group, Command, Obj, Args, ExpectedArgs)
     end.
 
-handle_subcommand(Group, Command, _, []) ->
-    io:format("usage: ~s ~s ~s <path>~n",
-              [escript:script_name(), Group, Command]);
-handle_subcommand(_Group, _Command, #{function := F}, Arg) ->
+handle_subcommand(Group, Command, _, [], ExpectedArgs) ->
+    io:format("usage: ~s ~s ~s ~s~n",
+              [escript:script_name(), Group, Command, ExpectedArgs]);
+handle_subcommand(_Group, _Command, #{function := F}, Arg, _ExpectedArgs) ->
     F(Arg).
 
 %% usage functions
@@ -108,26 +130,32 @@ print_command({Key, #{commands := Commands}}) ->
 %% dna functions
 
 dna_count([Path]) ->
-    {ok, [DNA]} = dna:from_file(Path),
+    {ok, [DNA]} = rosalind_file:multiline_file(Path),
     #{$A := As, $C := Cs, $G := Gs, $T := Ts} = dna:count(DNA),
     io:format("A: ~p; C: ~p; G: ~p; T: ~p~n", [As, Cs, Gs, Ts]).
 
 dna_to_rna([Path]) ->
-    {ok, [DNA]} = dna:from_file(Path),
+    {ok, [DNA]} = rosalind_file:multiline_file(Path),
     io:format("~s~n", [dna:to_rna(DNA)]).
 
 dna_compliment([Path]) ->
-    {ok, [DNA]} = dna:from_file(Path),
+    {ok, [DNA]} = rosalind_file:multiline_file(Path),
     io:format("~s~n", [dna:compliment(DNA)]).
 
 gc(Filename) ->
-    Fasta = fasta:read_file(Filename),
+    Fasta = rosalind_file:fasta_file(Filename),
     {Name, Content} = dna:highest_gc(Fasta),
     io:format("~s~n~9.6f~n", [Name, Content]).
 
 hamm([Path]) ->
-    {ok, [S1, S2]} = dna:from_file(Path),
+    {ok, [S1, S2]} = rosalind_file:multiline_file(Path),
     io:format("~w~n", [dna:hamming(S1, S2)]).
+
+%% rna functions
+
+prot([Path]) ->
+    {ok, [S1]} = rosalind_file:multiline_file(Path),
+    io:format("~s~n", [rna:to_protein(S1)]).
 
 %% math functions
 
@@ -139,3 +167,11 @@ iprb([K, M, N]) ->
     io:format("~f~n",
               [rosalind_math:iprb(list_to_integer(K), list_to_integer(M),
                                   list_to_integer(N))]).
+
+%% string functions
+
+subs([Path]) ->
+    {ok, [String, Prefix]} = rosalind_file:multiline_file(Path),
+    StringIdxs = lists:map(fun integer_to_list/1,
+                           rosalind_string:substring_idx(Prefix, String)),
+    io:format("~s~n", [string:join(StringIdxs, " ")]).
