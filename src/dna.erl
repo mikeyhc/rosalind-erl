@@ -1,6 +1,7 @@
 -module(dna).
 
--export([count/1, to_rna/1, compliment/1, highest_gc/1, hamming/2]).
+-export([count/1, to_rna/1, compliment/1, highest_gc/1, hamming/2,
+         consensus/1]).
 
 count(DNA) ->
     Inc = fun(V) -> V  + 1 end,
@@ -38,3 +39,23 @@ hamming(S1, S2) ->
            (_, Acc) -> Acc + 1
         end,
     lists:foldl(F, 0, Zipped).
+
+consensus(Fastas) ->
+    Dnas = lists:map(fun({_, Dna}) -> Dna end, Fastas),
+    Cols = transpose(Dnas),
+    Inc = fun(X) -> X + 1 end,
+    BuildCount = fun(C, Count) -> maps:update_with(C, Inc, 1, Count) end,
+    RunCol = fun(Col) -> lists:foldl(BuildCount, #{}, Col) end,
+    Counts = lists:map(RunCol, Cols),
+    BuildConsensus = fun(X) ->
+                             List = maps:to_list(X),
+                             [{H, _}|_] = lists:reverse(lists:keysort(2, List)),
+                             H
+                     end,
+    {lists:map(BuildConsensus, Counts), Counts}.
+
+%% internal functions
+
+transpose([[]|_]) -> [];
+transpose(M) ->
+      [lists:map(fun hd/1, M) | transpose(lists:map(fun tl/1, M))].

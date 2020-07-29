@@ -50,7 +50,11 @@ command_list() ->
           "hamm" =>
           #{description => "calculate the hamming distance between two strings",
             arg => "PATH",
-            function => fun hamm/1}}},
+            function => fun hamm/1},
+          "cons" =>
+          #{description => "determine the consensus string for FASTA strings",
+            arg => "PATH",
+            function => fun cons/1}}},
       "math" =>
       #{description => "math based functions",
         commands =>
@@ -150,6 +154,16 @@ gc(Filename) ->
 hamm([Path]) ->
     {ok, [S1, S2]} = rosalind_file:multiline_file(Path),
     io:format("~w~n", [dna:hamming(S1, S2)]).
+
+cons([Path]) ->
+    Fasta = rosalind_file:fasta_file(Path),
+    {Consensus, Counts} = dna:consensus(Fasta),
+    io:format("~s~n", [Consensus]),
+    lists:foreach(fun(C) -> cons_print_line(C, Counts) end, "ACGT").
+
+cons_print_line(Char, Counts) ->
+    Cs = lists:map(fun(M) -> integer_to_list(maps:get(Char, M, 0)) end, Counts),
+    io:format("~c: ~s~n", [Char, string:join(Cs, " ")]).
 
 %% rna functions
 
