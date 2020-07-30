@@ -65,7 +65,11 @@ command_list() ->
           "iprb" =>
           #{description => "calculate the probably of a homozygous dominant",
             arg => "K M N",
-            function => fun iprb/1}}},
+            function => fun iprb/1},
+          "fibd" =>
+          #{description => "calculate a decaying fibonacci sequence",
+            arg => "N M",
+            function => fun fibd/1}}},
       "rna" =>
       #{description => "operations on RNA",
         commands =>
@@ -73,13 +77,13 @@ command_list() ->
           #{description => "convert an RNA to a protein",
             arg => "PATH",
             function => fun prot/1}}},
-     "string" =>
-     #{description => "operations on strings",
-      commands =>
-      #{"subs" =>
-        #{description => "find all occurances of the prefix in the string",
-         arg => "PATH",
-         function => fun subs/1}}}}.
+      "string" =>
+      #{description => "operations on strings",
+        commands =>
+        #{"subs" =>
+          #{description => "find all occurances of the prefix in the string",
+            arg => "PATH",
+            function => fun subs/1}}}}.
 
 handle_command(Commands, Group, []) ->
     %% TODO stderr
@@ -181,6 +185,10 @@ iprb([K, M, N]) ->
     io:format("~f~n",
               [rosalind_math:iprb(list_to_integer(K), list_to_integer(M),
                                   list_to_integer(N))]).
+
+fibd([M, N]) ->
+    io:format("~w~n", [rosalind_math:fibd(list_to_integer(M),
+                                          list_to_integer(N))]).
 
 %% string functions
 
