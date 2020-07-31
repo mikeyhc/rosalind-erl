@@ -7,10 +7,9 @@ multiline_file(Path) ->
     {ok, lists:filter(fun(X) -> X =/= [] end,
                       string:split(binary:bin_to_list(Bin), "\n", all))}.
 
-% TODO return {ok, Result}
 fasta_file(Filename) ->
     {ok, Bin} = file:read_file(Filename),
-    to_fasta(string:split(binary:bin_to_list(Bin), "\n", all)).
+    {ok, to_fasta(string:split(binary:bin_to_list(Bin), "\n", all))}.
 
 to_fasta(Lines) ->
     to_fasta(Lines, []).

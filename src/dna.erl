@@ -1,7 +1,7 @@
 -module(dna).
 
 -export([count/1, to_rna/1, compliment/1, highest_gc/1, hamming/2,
-         consensus/1]).
+         consensus/1, overlap/1]).
 
 count(DNA) ->
     Inc = fun(V) -> V  + 1 end,
@@ -54,8 +54,28 @@ consensus(Fastas) ->
                      end,
     {lists:map(BuildConsensus, Counts), Counts}.
 
+overlap(Fasta) ->
+    Fn = fun({Key, DNA}) ->
+                 Prefix = lists:sublist(DNA, 3),
+                 Suffix = lists:reverse(lists:sublist(lists:reverse(DNA), 3)),
+                 {Key, Prefix, Suffix}
+         end,
+    PreAndSuf = lists:map(Fn, Fasta),
+    Match = fun({K, _Pre, Suf}, Acc) ->
+                    [find_matches(K, Suf,  PreAndSuf)|Acc]
+            end,
+    Filter = fun({K, L}) -> K =/= L end,
+    lists:filter(Filter, lists:flatten(lists:foldl(Match, [], PreAndSuf))).
+
 %% internal functions
 
 transpose([[]|_]) -> [];
 transpose(M) ->
       [lists:map(fun hd/1, M) | transpose(lists:map(fun tl/1, M))].
+
+find_matches(K, Suf, List) ->
+    lists:foldl(fun({L, Pre, _}, Acc) ->
+                        if Pre =:= Suf -> [{K, L}|Acc];
+                           true -> Acc
+                        end
+                end, [], List).

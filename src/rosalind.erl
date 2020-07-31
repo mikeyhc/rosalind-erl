@@ -54,7 +54,11 @@ command_list() ->
           "cons" =>
           #{description => "determine the consensus string for FASTA strings",
             arg => "PATH",
-            function => fun cons/1}}},
+            function => fun cons/1},
+          "grph" =>
+          #{description => "map a set of fasta strings to a graph",
+            arg => "PATH",
+            function => fun grph/1}}},
       "math" =>
       #{description => "math based functions",
         commands =>
@@ -150,8 +154,8 @@ dna_compliment([Path]) ->
     {ok, [DNA]} = rosalind_file:multiline_file(Path),
     io:format("~s~n", [dna:compliment(DNA)]).
 
-gc(Filename) ->
-    Fasta = rosalind_file:fasta_file(Filename),
+gc([Filename]) ->
+    {ok, Fasta} = rosalind_file:fasta_file(Filename),
     {Name, Content} = dna:highest_gc(Fasta),
     io:format("~s~n~9.6f~n", [Name, Content]).
 
@@ -160,7 +164,7 @@ hamm([Path]) ->
     io:format("~w~n", [dna:hamming(S1, S2)]).
 
 cons([Path]) ->
-    Fasta = rosalind_file:fasta_file(Path),
+    {ok, Fasta} = rosalind_file:fasta_file(Path),
     {Consensus, Counts} = dna:consensus(Fasta),
     io:format("~s~n", [Consensus]),
     lists:foreach(fun(C) -> cons_print_line(C, Counts) end, "ACGT").
@@ -168,6 +172,11 @@ cons([Path]) ->
 cons_print_line(Char, Counts) ->
     Cs = lists:map(fun(M) -> integer_to_list(maps:get(Char, M, 0)) end, Counts),
     io:format("~c: ~s~n", [Char, string:join(Cs, " ")]).
+
+grph([Path]) ->
+    {ok, Fasta} = rosalind_file:fasta_file(Path),
+    F = fun({A, B}) -> io:format("~s ~s~n", [A, B]) end,
+    lists:foreach(F, dna:overlap(Fasta)).
 
 %% rna functions
 
