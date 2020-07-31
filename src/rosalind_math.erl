@@ -1,6 +1,6 @@
 -module(rosalind_math).
 
--export([fib/2, fibd/2, iprb/3]).
+-export([fib/2, fibd/2, iprb/3, iev/6]).
 
 fib(N, K) ->
     fib(N, K, 1, 0).
@@ -12,7 +12,7 @@ fib(N, K, Child, Adult) ->
 fibd(N, M) ->
     fibd(1, N, M, 1, 0, []).
 
-fibd(N, N, M, Child, Adult, History)  ->
+fibd(N, N, _M, Child, Adult, _History)  ->
     Child + Adult;
 fibd(I, N, M, Child, Adult, History) when I >= M ->
     fibd(I + 1, N, M, Adult, Child + Adult - lists:nth(M - 1, History),
@@ -32,3 +32,6 @@ iprb(K, M, N) ->
     NM = NInitial * M * 0.5 / (Total - 1),
 
     MInitial + KPercent + MK + MM + NK + NM.
+
+iev(A, B, C, D, E, _F) ->
+    (A + B + C) * 2 + D * 1.5 + E.

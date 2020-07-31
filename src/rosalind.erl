@@ -73,7 +73,11 @@ command_list() ->
           "fibd" =>
           #{description => "calculate a decaying fibonacci sequence",
             arg => "N M",
-            function => fun fibd/1}}},
+            function => fun fibd/1},
+          "iev" =>
+          #{description => "caluclate expected offspring",
+            arg => "A B C D E F",
+            function => fun iev/1}}},
       "rna" =>
       #{description => "operations on RNA",
         commands =>
@@ -198,6 +202,10 @@ iprb([K, M, N]) ->
 fibd([M, N]) ->
     io:format("~w~n", [rosalind_math:fibd(list_to_integer(M),
                                           list_to_integer(N))]).
+
+iev(L=[_, _, _, _, _, _]) ->
+    Nums = lists:map(fun list_to_integer/1, L),
+    io:format("~w~n", [apply(rosalind_math, iev, Nums)]).
 
 %% string functions
 
