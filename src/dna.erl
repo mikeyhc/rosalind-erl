@@ -1,15 +1,18 @@
 -module(dna).
 
 -export([count/1, to_rna/1, compliment/1, highest_gc/1, hamming/2,
-         consensus/1, overlap/1]).
+         consensus/1, overlap/1, shared_motif/1]).
 
+% dna
 count(DNA) ->
     Inc = fun(V) -> V  + 1 end,
     lists:foldl(fun(X, Acc) -> maps:update_with(X, Inc, 1, Acc) end, #{}, DNA).
 
+% rna
 to_rna(DNA) ->
     lists:map(fun($T) -> $U; (X) -> X end, DNA).
 
+% revc
 compliment(DNA) ->
     Convert = fun($A, Acc) -> [$T|Acc];
                  ($T, Acc) -> [$A|Acc];
@@ -19,20 +22,14 @@ compliment(DNA) ->
               end,
     lists:foldl(Convert, [], DNA).
 
+% gc
 highest_gc(DNAs) ->
     F = fun({K, C}) -> {K, calculate_content(C)} end,
     Contents = lists:map(F, DNAs),
     [H|_] = lists:reverse(lists:keysort(2, Contents)),
     H.
 
-calculate_content(S) ->
-    F = fun($G, {GC, T}) -> {GC + 1, T + 1};
-           ($C, {GC, T}) -> {GC + 1, T + 1};
-           (_, {GC, T}) -> {GC, T + 1}
-        end,
-    {GCs, Total} = lists:foldl(F, {0, 0}, S),
-    GCs / Total * 100.
-
+% hamm
 hamming(S1, S2) ->
     Zipped = lists:zip(S1, S2),
     F = fun({X, X}, Acc) -> Acc;
@@ -40,6 +37,7 @@ hamming(S1, S2) ->
         end,
     lists:foldl(F, 0, Zipped).
 
+% cons
 consensus(Fastas) ->
     Dnas = lists:map(fun({_, Dna}) -> Dna end, Fastas),
     Cols = transpose(Dnas),
@@ -54,6 +52,7 @@ consensus(Fastas) ->
                      end,
     {lists:map(BuildConsensus, Counts), Counts}.
 
+% grph
 overlap(Fasta) ->
     Fn = fun({Key, DNA}) ->
                  Prefix = lists:sublist(DNA, 3),
@@ -67,15 +66,72 @@ overlap(Fasta) ->
     Filter = fun({K, L}) -> K =/= L end,
     lists:filter(Filter, lists:flatten(lists:foldl(Match, [], PreAndSuf))).
 
+% lcsm
+shared_motif(Fastas) ->
+    Lengths = lists:map(fun({_, Dna}) -> {Dna, length(Dna)} end, Fastas),
+    F = fun(N={_, L}, Acc={_, SL}) ->
+                if L < SL -> N;
+                   true -> Acc
+                end
+        end,
+    [H|Rest] = Lengths,
+    {SDna, SLen} = lists:foldl(F, H, Rest),
+    match_any_prefix(SDna, SLen, SLen, Lengths).
+
+
 %% internal functions
 
+% gc
+calculate_content(S) ->
+    F = fun($G, {GC, T}) -> {GC + 1, T + 1};
+           ($C, {GC, T}) -> {GC + 1, T + 1};
+           (_, {GC, T}) -> {GC, T + 1}
+        end,
+    {GCs, Total} = lists:foldl(F, {0, 0}, S),
+    GCs / Total * 100.
+
+% cons
 transpose([[]|_]) -> [];
 transpose(M) ->
       [lists:map(fun hd/1, M) | transpose(lists:map(fun tl/1, M))].
 
+% grph
 find_matches(K, Suf, List) ->
     lists:foldl(fun({L, Pre, _}, Acc) ->
                         if Pre =:= Suf -> [{K, L}|Acc];
                            true -> Acc
                         end
                 end, [], List).
+
+% lcsm
+is_prefix(_Prefix, _String, 0) -> true;
+is_prefix([H|Prefix], [H|String], N) ->
+    is_prefix(Prefix, String, N - 1);
+is_prefix(_, _, _) -> false.
+
+% lcsm
+contains_string(_Prefix, PrefixLen, _String, StrLen) when StrLen < PrefixLen ->
+    false;
+contains_string(Prefix, PrefixLen, String=[_|Rest], StrLen) ->
+    case is_prefix(Prefix, String, PrefixLen) of
+        true -> true;
+        false ->
+            contains_string(Prefix, PrefixLen, Rest, StrLen - 1)
+    end.
+
+% lcsm
+match_strings(_First, FirstLen, I, Width, _Others) when I + Width > FirstLen ->
+    false;
+match_strings(First=[_|Rest], FirstLen, I, Width, Others) ->
+    F = fun({Str, Len}) -> not contains_string(First, Width, Str, Len) end,
+    case lists:any(F, Others) of
+        true ->  match_strings(Rest, FirstLen, I + 1, Width, Others);
+        false -> {true, lists:sublist(First, Width)}
+    end.
+
+% lcsm
+match_any_prefix(First, FirstLen, Width, Others) ->
+    case match_strings(First, FirstLen, 0, Width, Others) of
+        {true, Str} -> Str;
+        false -> match_any_prefix(First, FirstLen, Width - 1, Others)
+    end.

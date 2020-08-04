@@ -58,7 +58,12 @@ command_list() ->
           "grph" =>
           #{description => "map a set of fasta strings to a graph",
             arg => "PATH",
-            function => fun grph/1}}},
+            function => fun grph/1},
+         "lcsm" =>
+         #{description => "determine the longest shared motif in a set of "
+                          "FASTA strings",
+           arg => "PATH",
+           function => fun lcsm/1}}},
       "math" =>
       #{description => "math based functions",
         commands =>
@@ -181,6 +186,10 @@ grph([Path]) ->
     {ok, Fasta} = rosalind_file:fasta_file(Path),
     F = fun({A, B}) -> io:format("~s ~s~n", [A, B]) end,
     lists:foreach(F, dna:overlap(Fasta)).
+
+lcsm([Path]) ->
+    {ok, Fasta} = rosalind_file:fasta_file(Path),
+    io:format("~s~n", [dna:shared_motif(Fasta)]).
 
 %% rna functions
 
