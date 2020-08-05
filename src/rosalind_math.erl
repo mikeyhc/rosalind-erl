@@ -1,6 +1,6 @@
 -module(rosalind_math).
 
--export([fib/2, fibd/2, iprb/3, iev/6]).
+-export([fib/2, fibd/2, iprb/3, iev/6, lia/2]).
 
 fib(N, K) ->
     fib(N, K, 1, 0).
@@ -35,3 +35,30 @@ iprb(K, M, N) ->
 
 iev(A, B, C, D, E, _F) ->
     (A + B + C) * 2 + D * 1.5 + E.
+
+lia(K, N) ->
+    Children = round(math:pow(2, K)),
+    Fn = fun(X) ->
+                 BC = binomial_coefficient(Children, X),
+                 Out = math:pow(0.75, Children - X),
+                 In = math:pow(0.25, X),
+                 BC * In * Out
+         end,
+    rosalind_rouding(1 - lists:sum(lists:map(Fn, lists:seq(0, N - 1)))).
+
+%% helper methods
+
+% lia
+fact(N) -> fact(N, 1).
+
+fact(0, Acc) -> Acc;
+fact(N, Acc) ->
+    fact(N - 1, Acc * N).
+
+% lia
+binomial_coefficient(N, K) ->
+    fact(N) / (fact(K) * fact(N - K)).
+
+% lia
+rosalind_rouding(N) ->
+    round(N * 1000) / 1000.

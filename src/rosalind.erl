@@ -82,7 +82,12 @@ command_list() ->
           "iev" =>
           #{description => "caluclate expected offspring",
             arg => "A B C D E F",
-            function => fun iev/1}}},
+            function => fun iev/1},
+         "lia" =>
+         #{description => "determine the likelyhood of N AaBb offspring by "
+                          "generation K",
+           arg => "K N",
+           function => fun lia/1}}},
       "rna" =>
       #{description => "operations on RNA",
         commands =>
@@ -215,6 +220,10 @@ fibd([M, N]) ->
 iev(L=[_, _, _, _, _, _]) ->
     Nums = lists:map(fun list_to_integer/1, L),
     io:format("~w~n", [apply(rosalind_math, iev, Nums)]).
+
+lia(L=[_, _]) ->
+    Nums = lists:map(fun list_to_integer/1, L),
+    io:format("~5.3f~n", [apply(rosalind_math, lia, Nums)]).
 
 %% string functions
 
