@@ -1,13 +1,9 @@
 -module(fasta).
 
--export([read_file/1]).
+-export([to_fasta/1]).
 
-read_file(Filename) ->
-    {ok, Bin} = file:read_file(Filename),
-    to_fasta(string:split(binary:bin_to_list(Bin), "\n", all)).
-
-to_fasta(Lines) ->
-    to_fasta(Lines, []).
+to_fasta(Input) ->
+    to_fasta(string:split(Input, "\n", all), []).
 
 to_fasta([], Fasta) ->
     lists:map(fun to_dna_string/1, Fasta);

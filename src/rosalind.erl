@@ -101,7 +101,20 @@ command_list() ->
         #{"subs" =>
           #{description => "find all occurances of the prefix in the string",
             arg => "PATH",
-            function => fun subs/1}}}}.
+            function => fun subs/1}}},
+     "prot" =>
+     #{description => "operations on proteins",
+      commands =>
+      #{"mprt" =>
+        #{description => "find the N-glycosylation motifs in the provided "
+                         "strings",
+          arg => "PATH",
+          function => fun mprt/1},
+        "mrna" =>
+        #{description => "calculate the number of possible RNA strings that "
+          "could have led to this protein string",
+          arg => "PATH",
+          function => fun mrna/1}}}}.
 
 handle_command(Commands, Group, []) ->
     %% TODO stderr
@@ -232,3 +245,23 @@ subs([Path]) ->
     StringIdxs = lists:map(fun integer_to_list/1,
                            rosalind_string:substring_idx(Prefix, String)),
     io:format("~s~n", [string:join(StringIdxs, " ")]).
+
+%% protein functions
+
+mprt([Path]) ->
+    application:ensure_all_started(gun),
+    {ok, Strings} = rosalind_file:multiline_file(Path),
+    ProteinLocations = rosalind_prot:protein_motifs(Strings),
+    Filtered = lists:filter(fun({_, []}) -> false;
+                               ({_, _}) -> true
+                            end, ProteinLocations),
+    Fn = fun({Id, Locations}) ->
+                 io:format("~s~n", [Id]),
+                 Pos = lists:map(fun integer_to_list/1, Locations),
+                 io:format("~s~n", [string:join(Pos, " ")])
+         end,
+    lists:foreach(Fn, Filtered).
+
+mrna([Path]) ->
+    {ok, [Protein]} = rosalind_file:multiline_file(Path),
+    io:format("~w~n", [rosalind_prot:infer_mrna(Protein)]).
