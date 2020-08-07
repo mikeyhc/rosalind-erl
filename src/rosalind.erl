@@ -67,7 +67,11 @@ command_list() ->
          "orf" =>
          #{description => "find all open reading frames in the FASTA string",
            arg => "PATH",
-           function => fun orf/1}}},
+           function => fun orf/1},
+         "revp" =>
+         #{description => "find all the restriction sites in a DNA sting",
+           arg => "PATH",
+           function => fun revp/1}}},
       "math" =>
       #{description => "math based functions",
         commands =>
@@ -222,9 +226,15 @@ lcsm([Path]) ->
     io:format("~s~n", [dna:shared_motif(Fasta)]).
 
 orf([Path]) ->
-    {ok, [{_, Fasta}]} = rosalind_file:fasta_file(Path),
+    {ok, [{_, Dna}]} = rosalind_file:fasta_file(Path),
     Fn = fun(ORF) -> io:format("~s~n", [ORF]) end,
-    lists:foreach(Fn, dna:open_reading_frames(Fasta)).
+    lists:foreach(Fn, dna:open_reading_frames(Dna)).
+
+revp([Path]) ->
+    {ok, [{_, Dna}]} = rosalind_file:fasta_file(Path),
+    Sites = dna:restriction_sites(Dna),
+    lists:foreach(fun({P, L}) -> io:format("~w ~w~n", [P, L]) end, Sites).
+
 
 %% rna functions
 
