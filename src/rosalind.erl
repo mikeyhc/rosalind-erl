@@ -91,7 +91,11 @@ command_list() ->
          #{description => "determine the likelyhood of N AaBb offspring by "
                           "generation K",
            arg => "K N",
-           function => fun lia/1}}},
+           function => fun lia/1},
+         "perm" =>
+         #{description => "produce all the permutations from 1 to N",
+           arg => "N",
+           function => fun perm/1}}},
       "rna" =>
       #{description => "operations on RNA",
         commands =>
@@ -246,6 +250,15 @@ iev(L=[_, _, _, _, _, _]) ->
 lia(L=[_, _]) ->
     Nums = lists:map(fun list_to_integer/1, L),
     io:format("~5.3f~n", [apply(rosalind_math, lia, Nums)]).
+
+perm([N]) ->
+    Perms = rosalind_math:perm(list_to_integer(N)),
+    io:format("~w~n", [length(Perms)]),
+    Fn = fun(L) ->
+                 Ns = lists:map(fun integer_to_list/1, L),
+                 io:format("~s~n", [string:join(Ns, " ")])
+         end,
+    lists:foreach(Fn, Perms).
 
 %% string functions
 

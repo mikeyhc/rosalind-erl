@@ -1,6 +1,6 @@
 -module(rosalind_math).
 
--export([fib/2, fibd/2, iprb/3, iev/6, lia/2]).
+-export([fib/2, fibd/2, iprb/3, iev/6, lia/2, perm/1]).
 
 fib(N, K) ->
     fib(N, K, 1, 0).
@@ -46,6 +46,9 @@ lia(K, N) ->
          end,
     rosalind_rouding(1 - lists:sum(lists:map(Fn, lists:seq(0, N - 1)))).
 
+perm(N) ->
+    perm_(lists:seq(1, N)).
+
 %% helper methods
 
 % lia
@@ -62,3 +65,7 @@ binomial_coefficient(N, K) ->
 % lia
 rosalind_rouding(N) ->
     round(N * 1000) / 1000.
+
+% perm
+perm_([]) -> [[]];
+perm_(L) -> [[H|T] || H <- L, T <- perm_(L--[H])].
