@@ -6,7 +6,7 @@ to_fasta(Input) ->
     to_fasta(string:split(Input, "\n", all), []).
 
 to_fasta([], Fasta) ->
-    lists:map(fun to_dna_string/1, Fasta);
+    lists:reverse(lists:map(fun to_dna_string/1, Fasta));
 to_fasta([[$>|Name]|T], Acc) ->
     to_fasta(T, [{Name, []}|Acc]);
 to_fasta([Line|T], [{Name, Lines}|Acc]) ->

@@ -1,7 +1,8 @@
 -module(dna).
 
 -export([count/1, to_rna/1, compliment/1, highest_gc/1, hamming/2,
-         consensus/1, overlap/1, shared_motif/1, open_reading_frames/1]).
+         consensus/1, overlap/1, shared_motif/1, open_reading_frames/1,
+         reverse_palindrome/1]).
 
 % dna
 count(DNA) ->
@@ -84,6 +85,11 @@ open_reading_frames(DNA) ->
     Prots = rna:to_proteins(to_rna(DNA)) ++ rna:to_proteins(to_rna(Compliment)),
     sets:to_list(sets:from_list(Prots)).
 
+% revp
+reverse_palindrome(DNA) ->
+    Compliment = compliment(DNA),
+    reverse_palindrome(DNA, Compliment, 1, []).
+
 %% internal functions
 
 % gc
@@ -140,3 +146,17 @@ match_any_prefix(First, FirstLen, Width, Others) ->
         {true, Str} -> Str;
         false -> match_any_prefix(First, FirstLen, Width - 1, Others)
     end.
+
+% revp
+reverse_palindrome([], [], _Idx, Acc) -> lists:reverse(Acc);
+reverse_palindrome(L1=[H|_], L2=[H|_], Idx, Acc) ->
+    {T1, T2, N} = count_palindrome(L1, L2, 0),
+    reverse_palindrome(T1, T2, Idx + N + 1, [{Idx, N}|Acc]);
+reverse_palindrome([_|T1], [_|T2], Idx, Acc) ->
+    reverse_palindrome(T1, T2, Idx + 1, Acc).
+
+% revp
+count_palindrome([H|T1], [H|T2], N) ->
+    count_palindrome(T1, T2, N + 1);
+count_palindrome(T1, T2, Idx) ->
+    {T1, T2, Idx}.

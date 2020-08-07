@@ -1,6 +1,7 @@
 -module(rna).
 
--export([to_protein/1, codon_table/0, reverse_codon_table/0, to_proteins/1]).
+-export([to_protein/1, codon_table/0, reverse_codon_table/0, to_proteins/1,
+         rna_splice/2]).
 
 to_protein(RNA) ->
     lists:reverse(build_protein(RNA, [])).
@@ -21,6 +22,14 @@ build_proteins(L=[A, B, C|T], Acc) ->
         _ -> build_proteins([B, C|T], Acc)
     end;
 build_proteins(_, Acc) -> Acc.
+
+% splc
+rna_splice(String, Introns) ->
+    Sorted = lists:sort(fun(A, B) -> length(A) > length(B) end, Introns),
+    Exons = lists:foldl(fun remove_intron/2, String, Sorted),
+    rna:to_protein(Exons).
+
+%% internal functions
 
 codon_table() ->
     #{"UUU" => $F, "CUU" => $L, "AUU" => $I, "GUU" => $V,
@@ -53,3 +62,15 @@ reverse_codon_table() ->
 
 codon(Str) ->
     maps:get(Str, codon_table()).
+
+% splc
+remove_intron(Intron, String) ->
+    remove_intron(Intron, String, []).
+
+% splc
+remove_intron(_Intron, [], Acc) -> lists:reverse(Acc);
+remove_intron(Intron, S=[H|T], Acc) ->
+    case string:prefix(S, Intron) of
+        nomatch -> remove_intron(Intron, T, [H|Acc]);
+        Rest -> remove_intron(Intron, Rest, Acc)
+    end.

@@ -67,7 +67,12 @@ command_list() ->
          "orf" =>
          #{description => "find all open reading frames in the FASTA string",
            arg => "PATH",
-           function => fun orf/1}}},
+           function => fun orf/1},
+         "splc" =>
+         #{description => "create a protein from the DNA exons after removing "
+                          "the introns.",
+           arg => "PATH",
+           function => fun splc/1}}},
       "math" =>
       #{description => "math based functions",
         commands =>
@@ -225,6 +230,12 @@ orf([Path]) ->
     {ok, [{_, Fasta}]} = rosalind_file:fasta_file(Path),
     Fn = fun(ORF) -> io:format("~s~n", [ORF]) end,
     lists:foreach(Fn, dna:open_reading_frames(Fasta)).
+
+splc([Path]) ->
+    {ok, Fastas} = rosalind_file:fasta_file(Path),
+    [Base|Rest] = lists:map(fun({_, Dna}) -> dna:to_rna(Dna) end, Fastas),
+    Protein = rna:rna_splice(Base, Rest),
+    io:format("~s~n", [Protein]).
 
 %% rna functions
 
