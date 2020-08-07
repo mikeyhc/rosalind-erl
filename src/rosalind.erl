@@ -122,7 +122,11 @@ command_list() ->
         #{description => "calculate the number of possible RNA strings that "
           "could have led to this protein string",
           arg => "PATH",
-          function => fun mrna/1}}}}.
+          function => fun mrna/1},
+       "prtm" =>
+       #{description => "calculate the mass of this protein",
+         arg => "PATH",
+         function => fun prtm/1}}}}.
 
 handle_command(Commands, Group, []) ->
     %% TODO stderr
@@ -287,3 +291,8 @@ mprt([Path]) ->
 mrna([Path]) ->
     {ok, [Protein]} = rosalind_file:multiline_file(Path),
     io:format("~w~n", [rosalind_prot:infer_mrna(Protein)]).
+
+prtm([Path]) ->
+    {ok, [Protein]} = rosalind_file:multiline_file(Path),
+    Mass = rosalind_prot:protein_mass(Protein),
+    io:format("~w~n", [rosalind_math:rosalind_rounding(Mass)]).
