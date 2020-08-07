@@ -1,16 +1,26 @@
 -module(rna).
 
--export([to_protein/1, codon_table/0, reverse_codon_table/0]).
+-export([to_protein/1, codon_table/0, reverse_codon_table/0, to_proteins/1]).
 
 to_protein(RNA) ->
     lists:reverse(build_protein(RNA, [])).
 
-build_protein([], Acc) -> Acc;
 build_protein([A, B, C|T], Acc) ->
     case codon([A, B, C]) of
         false -> Acc;
         V -> build_protein(T, [V|Acc])
-    end.
+    end;
+build_protein(_, _Acc) -> [].
+
+to_proteins(RNA) ->
+    lists:filter(fun(L) -> L =/= [] end, build_proteins(RNA, [])).
+
+build_proteins(L=[A, B, C|T], Acc) ->
+    case codon([A, B, C]) of
+        $M -> build_proteins([B, C|T], [to_protein(L)|Acc]);
+        _ -> build_proteins([B, C|T], Acc)
+    end;
+build_proteins(_, Acc) -> Acc.
 
 codon_table() ->
     #{"UUU" => $F, "CUU" => $L, "AUU" => $I, "GUU" => $V,
@@ -42,6 +52,4 @@ reverse_codon_table() ->
     lists:foldl(Fn, #{}, maps:to_list(codon_table())).
 
 codon(Str) ->
-    #{Str := Amino} = codon_table(),
-    Amino.
-
+    maps:get(Str, codon_table()).

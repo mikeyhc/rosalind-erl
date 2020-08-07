@@ -63,7 +63,11 @@ command_list() ->
          #{description => "determine the longest shared motif in a set of "
                           "FASTA strings",
            arg => "PATH",
-           function => fun lcsm/1}}},
+           function => fun lcsm/1},
+         "orf" =>
+         #{description => "find all open reading frames in the FASTA string",
+           arg => "PATH",
+           function => fun orf/1}}},
       "math" =>
       #{description => "math based functions",
         commands =>
@@ -208,6 +212,11 @@ grph([Path]) ->
 lcsm([Path]) ->
     {ok, Fasta} = rosalind_file:fasta_file(Path),
     io:format("~s~n", [dna:shared_motif(Fasta)]).
+
+orf([Path]) ->
+    {ok, [{_, Fasta}]} = rosalind_file:fasta_file(Path),
+    Fn = fun(ORF) -> io:format("~s~n", [ORF]) end,
+    lists:foreach(Fn, dna:open_reading_frames(Fasta)).
 
 %% rna functions
 
