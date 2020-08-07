@@ -2,7 +2,7 @@
 
 -export([count/1, to_rna/1, compliment/1, highest_gc/1, hamming/2,
          consensus/1, overlap/1, shared_motif/1, open_reading_frames/1,
-         reverse_palindrome/1]).
+         reverse_palindrome/1, restriction_sites/1]).
 
 % dna
 count(DNA) ->
@@ -90,6 +90,9 @@ reverse_palindrome(DNA) ->
     Compliment = compliment(DNA),
     reverse_palindrome(DNA, Compliment, 1, []).
 
+restriction_sites(Dna) ->
+    lists:reverse(find_restriction_sites(Dna, 1, length(Dna) + 1, [])).
+
 %% internal functions
 
 % gc
@@ -160,3 +163,18 @@ count_palindrome([H|T1], [H|T2], N) ->
     count_palindrome(T1, T2, N + 1);
 count_palindrome(T1, T2, Idx) ->
     {T1, T2, Idx}.
+
+find_restriction_sites(_, Idx, N, Acc) when N - Idx < 4 -> Acc;
+find_restriction_sites(Dna=[_|T], Idx, N, Acc) ->
+    ShortDna = lists:sublist(Dna, 12),
+    Compliment = compliment(ShortDna),
+    NewAcc = case test_prefix(ShortDna, Compliment, min(N - Idx, 12)) of
+                 false -> Acc;
+                 Len -> [{Idx, Len}|Acc]
+             end,
+    find_restriction_sites(T, Idx + 1, N, NewAcc).
+
+test_prefix(_Dna, _Comp, Len) when Len < 4 -> false;
+test_prefix(Dna, Dna, Len) -> Len;
+test_prefix(Dna, [_|Comp], Len) ->
+    test_prefix(lists:sublist(Dna, Len - 1), Comp, Len - 1).
