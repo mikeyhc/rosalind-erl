@@ -76,7 +76,11 @@ command_list() ->
          #{description => "create a protein from the DNA exons after removing "
                           "the introns.",
            arg => "PATH",
-           function => fun splc/1}}},
+           function => fun splc/1},
+         "sseq" =>
+         #{description => "determine the indices of the substrings",
+           arg => "PATH",
+           function => fun sseq/1}}},
       "math" =>
       #{description => "math based functions",
         commands =>
@@ -255,6 +259,11 @@ splc([Path]) ->
     [Base|Rest] = lists:map(fun({_, Dna}) -> dna:to_rna(Dna) end, Fastas),
     Protein = rna:rna_splice(Base, Rest),
     io:format("~s~n", [Protein]).
+
+sseq([Path]) ->
+    {ok, [{_, Base}, {_, Sub}]} = rosalind_file:fasta_file(Path),
+    Idxs = dna:spliced_motif(Base, Sub),
+    io:format("~s~n", [string:join(lists:map(fun integer_to_list/1, Idxs), " ")]).
 
 %% rna functions
 

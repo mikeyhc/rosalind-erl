@@ -2,7 +2,7 @@
 
 -export([count/1, to_rna/1, compliment/1, highest_gc/1, hamming/2,
          consensus/1, overlap/1, shared_motif/1, open_reading_frames/1,
-         reverse_palindrome/1, restriction_sites/1]).
+         reverse_palindrome/1, restriction_sites/1, spliced_motif/2]).
 
 % dna
 count(DNA) ->
@@ -93,6 +93,10 @@ reverse_palindrome(DNA) ->
 restriction_sites(Dna) ->
     lists:reverse(find_restriction_sites(Dna, 1, length(Dna) + 1, [])).
 
+% sseq
+spliced_motif(Base, Sub) ->
+    motif_indices(Base, Sub, 1, []).
+
 %% internal functions
 
 % gc
@@ -178,3 +182,11 @@ test_prefix(_Dna, _Comp, Len) when Len < 4 -> false;
 test_prefix(Dna, Dna, Len) -> Len;
 test_prefix(Dna, [_|Comp], Len) ->
     test_prefix(lists:sublist(Dna, Len - 1), Comp, Len - 1).
+
+% sseq
+motif_indices([], _, _, _) -> throw(invalid_subsequence);
+motif_indices(_, [], _, Acc) -> lists:reverse(Acc);
+motif_indices([H|S], [H|T], N, Acc) ->
+    motif_indices(S, T, N + 1, [N|Acc]);
+motif_indices([_|S], Subs, N, Acc) ->
+    motif_indices(S, Subs, N + 1, Acc).
