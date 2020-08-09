@@ -118,7 +118,12 @@ command_list() ->
         #{"subs" =>
           #{description => "find all occurances of the prefix in the string",
             arg => "PATH",
-            function => fun subs/1}}},
+            function => fun subs/1},
+          "lexf" =>
+          #{description => "created a sorted list of length N of sorted "
+                           "alphabet A",
+            arg => "PATH",
+            function => fun lexf/1}}},
      "prot" =>
      #{description => "operations on proteins",
       commands =>
@@ -317,3 +322,10 @@ prtm([Path]) ->
     {ok, [Protein]} = rosalind_file:multiline_file(Path),
     Mass = rosalind_prot:protein_mass(Protein),
     io:format("~w~n", [rosalind_math:rosalind_rounding(Mass)]).
+
+lexf([Path]) ->
+    {ok, [Alphabet, SNum]} = rosalind_file:multiline_file(Path),
+    N = list_to_integer(SNum),
+    Dense = lists:filter(fun(X) -> X =/= $  end, Alphabet),
+    Lex = rosalind_string:all_kmers(Dense, N),
+    lists:foreach(fun(S) -> io:format("~s~n", [S]) end, Lex).
