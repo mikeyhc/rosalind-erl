@@ -116,7 +116,11 @@ command_list() ->
          "sign" =>
          #{description => "produce all the signed permutations from 1 to N",
            arg => "N",
-           function => fun sign/1}}},
+           function => fun sign/1},
+         "tree" =>
+         #{description => "count the edges required for a full tree",
+           arg => "PATH",
+           function => fun tree/1}}},
       "rna" =>
       #{description => "operations on RNA",
         commands =>
@@ -312,6 +316,16 @@ perm([N]) ->
                  io:format("~s~n", [string:join(Ns, " ")])
          end,
     lists:foreach(Fn, Perms).
+
+tree([Path]) ->
+    {ok, [N|Edges]} = rosalind_file:multiline_file(Path),
+    Fn = fun(S) ->
+                 [A, B] = string:split(S, " "),
+                 {list_to_integer(A), list_to_integer(B)}
+         end,
+    Graph = lists:map(Fn, Edges),
+    Count = rosalind_math:complete_tree(list_to_integer(N), Graph),
+    io:format("~w~n", [Count]).
 
 sign([N]) ->
     Perms = rosalind_math:signed_permutations(list_to_integer(N)),

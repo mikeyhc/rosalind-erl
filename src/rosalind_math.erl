@@ -2,7 +2,7 @@
 
 -export([fib/2, fibd/2, iprb/3, iev/6, lia/2, perm/1,
          rosalind_rounding/1, signed_permutations/1,
-         rosalind_rounding/2]).
+         rosalind_rounding/2, complete_tree/2]).
 
 fib(N, K) ->
     fib(N, K, 1, 0).
@@ -55,6 +55,16 @@ signed_permutations(N) ->
     Pos = perm(N),
     lists:flatmap(fun sign_perms_/1, Pos).
 
+% tree
+complete_tree(N, List) ->
+    Fn = fun({K, V}, Acc) ->
+                 For = maps:get(K, Acc, []),
+                 Back = maps:get(V, Acc, []),
+                 Acc#{K => [V|For], V => [K|Back]}
+         end,
+    Map = lists:foldl(Fn, #{}, List),
+    count_trees(lists:seq(1, N), [], Map, 0).
+
 % lia
 rosalind_rounding(N) ->
     rosalind_rounding(N, 3).
@@ -87,3 +97,16 @@ sign_perms_([H|T]) ->
     Base = sign_perms_(T),
     Fn = fun(B) -> [[H|B], [-H|B]] end,
     lists:flatmap(Fn, Base).
+
+% tree
+count_trees([], _V, _Map, N) -> N - 1;
+count_trees([H|T], Visited, Map, N) ->
+    {NewNodes, NewVisited} = consume_nodes([H], T, Visited, Map),
+    count_trees(NewNodes, NewVisited, Map, N + 1).
+
+% tree
+consume_nodes([], Nodes, Visited, _Map) -> {Nodes, Visited};
+consume_nodes([H|T], Nodes, Visited, Map) ->
+    New = lists:delete(H, Nodes),
+    Children = maps:get(H, Map, []) -- Visited,
+    consume_nodes(Children ++ T, New, [H|Visited], Map).
