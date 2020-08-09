@@ -1,7 +1,8 @@
 -module(rosalind_math).
 
 -export([fib/2, fibd/2, iprb/3, iev/6, lia/2, perm/1,
-         rosalind_rounding/1, signed_permutations/1]).
+         rosalind_rounding/1, signed_permutations/1,
+         rosalind_rounding/2]).
 
 fib(N, K) ->
     fib(N, K, 1, 0).
@@ -56,7 +57,12 @@ signed_permutations(N) ->
 
 % lia
 rosalind_rounding(N) ->
-    round(N * 1000) / 1000.
+    rosalind_rounding(N, 3).
+
+% lia
+rosalind_rounding(N, E) ->
+    Pow = math:pow(10, E),
+    round(N * Pow) / Pow.
 
 %% helper methods
 

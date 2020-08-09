@@ -2,7 +2,8 @@
 
 -export([count/1, to_rna/1, compliment/1, highest_gc/1, hamming/2,
          consensus/1, overlap/1, shared_motif/1, open_reading_frames/1,
-         reverse_palindrome/1, restriction_sites/1, spliced_motif/2]).
+         reverse_palindrome/1, restriction_sites/1, spliced_motif/2,
+         transition_transversion/2]).
 
 % dna
 count(DNA) ->
@@ -97,6 +98,11 @@ restriction_sites(Dna) ->
 spliced_motif(Base, Sub) ->
     motif_indices(Base, Sub, 1, []).
 
+% tran
+transition_transversion(S1, S2) ->
+    {X, Y} = tran(S1, S2, 0, 0),
+    Y / X.
+
 %% internal functions
 
 % gc
@@ -190,3 +196,22 @@ motif_indices([H|S], [H|T], N, Acc) ->
     motif_indices(S, T, N + 1, [N|Acc]);
 motif_indices([_|S], Subs, N, Acc) ->
     motif_indices(S, Subs, N + 1, Acc).
+
+% tran
+tran([], [], X, Y) -> {X, Y};
+tran([A|S], [A|T], X, Y) ->
+    tran(S, T, X, Y);
+tran([A|S], [B|T], X, Y) ->
+    case is_transition(A, B) of
+        true -> tran(S, T, X + 1, Y);
+        false -> tran(S, T, X, Y + 1)
+    end.
+
+% tran
+is_transition(C1, C2) ->
+    is_guanine(C1) xor is_guanine(C2).
+
+% tran
+is_guanine($A) -> true;
+is_guanine($G) -> true;
+is_guanine(_) -> false.

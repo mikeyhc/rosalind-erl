@@ -80,7 +80,11 @@ command_list() ->
          "sseq" =>
          #{description => "determine the indices of the substrings",
            arg => "PATH",
-           function => fun sseq/1}}},
+           function => fun sseq/1},
+         "tran" =>
+         #{description => "find the transition/transversion ratio",
+           arg => "PATH",
+           function => fun tran/1}}},
       "math" =>
       #{description => "math based functions",
         commands =>
@@ -263,7 +267,13 @@ splc([Path]) ->
 sseq([Path]) ->
     {ok, [{_, Base}, {_, Sub}]} = rosalind_file:fasta_file(Path),
     Idxs = dna:spliced_motif(Base, Sub),
-    io:format("~s~n", [string:join(lists:map(fun integer_to_list/1, Idxs), " ")]).
+    SIdxs = string:join(lists:map(fun integer_to_list/1, Idxs), " "),
+    io:format("~s~n", [SIdxs]).
+
+tran([Path]) ->
+    {ok, [{_, S1}, {_, S2}]} = rosalind_file:fasta_file(Path),
+    Ratio = dna:transition_transversion(S1, S2),
+    io:format("~13.11f~n", [rosalind_math:rosalind_rounding(Ratio, 11)]).
 
 %% rna functions
 
