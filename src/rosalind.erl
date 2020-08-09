@@ -104,7 +104,11 @@ command_list() ->
          "perm" =>
          #{description => "produce all the permutations from 1 to N",
            arg => "N",
-           function => fun perm/1}}},
+           function => fun perm/1},
+         "sign" =>
+         #{description => "produce all the signed permutations from 1 to N",
+           arg => "N",
+           function => fun sign/1}}},
       "rna" =>
       #{description => "operations on RNA",
         commands =>
@@ -290,6 +294,15 @@ perm([N]) ->
          end,
     lists:foreach(Fn, Perms).
 
+sign([N]) ->
+    Perms = rosalind_math:signed_permutations(list_to_integer(N)),
+    io:format("~w~n", [length(Perms)]),
+    Fn = fun(L) ->
+                 Ns = lists:map(fun integer_to_list/1, L),
+                 io:format("~s~n", [string:join(Ns, " ")])
+         end,
+    lists:foreach(Fn, Perms).
+
 %% string functions
 
 subs([Path]) ->
@@ -297,6 +310,13 @@ subs([Path]) ->
     StringIdxs = lists:map(fun integer_to_list/1,
                            rosalind_string:substring_idx(Prefix, String)),
     io:format("~s~n", [string:join(StringIdxs, " ")]).
+
+lexf([Path]) ->
+    {ok, [Alphabet, SNum]} = rosalind_file:multiline_file(Path),
+    N = list_to_integer(SNum),
+    Dense = lists:filter(fun(X) -> X =/= $  end, Alphabet),
+    Lex = rosalind_string:all_kmers(Dense, N),
+    lists:foreach(fun(S) -> io:format("~s~n", [S]) end, Lex).
 
 %% protein functions
 
@@ -322,10 +342,3 @@ prtm([Path]) ->
     {ok, [Protein]} = rosalind_file:multiline_file(Path),
     Mass = rosalind_prot:protein_mass(Protein),
     io:format("~w~n", [rosalind_math:rosalind_rounding(Mass)]).
-
-lexf([Path]) ->
-    {ok, [Alphabet, SNum]} = rosalind_file:multiline_file(Path),
-    N = list_to_integer(SNum),
-    Dense = lists:filter(fun(X) -> X =/= $  end, Alphabet),
-    Lex = rosalind_string:all_kmers(Dense, N),
-    lists:foreach(fun(S) -> io:format("~s~n", [S]) end, Lex).

@@ -1,7 +1,7 @@
 -module(rosalind_math).
 
 -export([fib/2, fibd/2, iprb/3, iev/6, lia/2, perm/1,
-         rosalind_rounding/1]).
+         rosalind_rounding/1, signed_permutations/1]).
 
 fib(N, K) ->
     fib(N, K, 1, 0).
@@ -50,9 +50,15 @@ lia(K, N) ->
 perm(N) ->
     perm_(lists:seq(1, N)).
 
+signed_permutations(N) ->
+    Pos = perm(N),
+    lists:flatmap(fun sign_perms_/1, Pos).
+
 % lia
 rosalind_rounding(N) ->
-    round(N * 1000) / 1000.  %% helper methods
+    round(N * 1000) / 1000.
+
+%% helper methods
 
 % lia
 fact(N) -> fact(N, 1).
@@ -68,3 +74,10 @@ binomial_coefficient(N, K) ->
 % perm
 perm_([]) -> [[]];
 perm_(L) -> [[H|T] || H <- L, T <- perm_(L--[H])].
+
+% sign
+sign_perms_([X]) -> [[X], [-X]];
+sign_perms_([H|T]) ->
+    Base = sign_perms_(T),
+    Fn = fun(B) -> [[H|B], [-H|B]] end,
+    lists:flatmap(Fn, Base).
