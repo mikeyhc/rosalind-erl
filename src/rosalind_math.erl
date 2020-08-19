@@ -2,7 +2,7 @@
 
 -export([fib/2, fibd/2, iprb/3, iev/6, lia/2, perm/1,
          rosalind_rounding/1, signed_permutations/1,
-         rosalind_rounding/2, complete_tree/2]).
+         rosalind_rounding/2, complete_tree/2, longest_subsequences/1]).
 
 fib(N, K) ->
     fib(N, K, 1, 0).
@@ -74,6 +74,12 @@ rosalind_rounding(N, E) ->
     Pow = math:pow(10, E),
     round(N * Pow) / Pow.
 
+% lgis
+longest_subsequences(List) ->
+    Inc = fun(A, B) -> A < B end,
+    Dec = fun(A, B) -> A > B end,
+    {find_sequence(Inc, List), find_sequence(Dec, List)}.
+
 %% helper methods
 
 % lia
@@ -110,3 +116,38 @@ consume_nodes([H|T], Nodes, Visited, Map) ->
     New = lists:delete(H, Nodes),
     Children = maps:get(H, Map, []) -- Visited,
     consume_nodes(Children ++ T, New, [H|Visited], Map).
+
+% lgis
+find_sequence(Cmp, List) ->
+    N = length(List),
+    P = array:new(N),
+    M = array:new(N + 1),
+    X = array:from_list(List),
+    {L0, P0, M0} = lgis(Cmp, 0, 0, N, X, P, M),
+    rebuild_sequence(L0 - 1, array:get(L0, M0), X, P0, []).
+
+% lgis
+lgis(_Cmp, N, L, N, _X, P, M) -> {L, P, M};
+lgis(Cmp, I, L, N, X, P, M) ->
+    NewL = lgis_bin_search(Cmp, I, 1, L, X, M),
+    P0 = array:set(I, array:get(NewL - 1, M), P),
+    M0 = array:set(NewL, I, M),
+    if NewL > L ->
+           lgis(Cmp, I + 1, NewL, N, X, P0, M0);
+       true ->
+           lgis(Cmp, I + 1, L, N, X, P0, M0)
+    end.
+
+% lgis
+lgis_bin_search(_Cmp, _I, Lo, Hi, _X, _M) when Lo > Hi -> Lo;
+lgis_bin_search(Cmp, I, Lo, Hi, X, M) ->
+    Mid = trunc(math:ceil((Lo + Hi) / 2)),
+    case Cmp(array:get(array:get(Mid, M), X), array:get(I, X)) of
+        true -> lgis_bin_search(Cmp, I, Mid + 1, Hi, X, M);
+        false -> lgis_bin_search(Cmp, I, Lo, Mid - 1, X, M)
+    end.
+
+% lgis
+rebuild_sequence(0, K, X, _P, S) -> [array:get(K, X)|S];
+rebuild_sequence(L, K, X, P, S) ->
+    rebuild_sequence(L - 1, array:get(K, P), X, P, [array:get(K, X)|S]).

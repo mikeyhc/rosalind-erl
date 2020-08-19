@@ -120,7 +120,11 @@ command_list() ->
          "tree" =>
          #{description => "count the edges required for a full tree",
            arg => "PATH",
-           function => fun tree/1}}},
+           function => fun tree/1},
+         "lgis" =>
+         #{description => "find the longest subsequences",
+           arg => "PATH",
+           function => fun lgis/1}}},
       "rna" =>
       #{description => "operations on RNA",
         commands =>
@@ -335,6 +339,15 @@ sign([N]) ->
                  io:format("~s~n", [string:join(Ns, " ")])
          end,
     lists:foreach(Fn, Perms).
+
+lgis([Path]) ->
+    {ok, [_|Input]} = rosalind_file:multiline_file(Path),
+    Parts = lists:map(fun list_to_integer/1, string:split(Input, " ", all)),
+    {Inc, Dec} = rosalind_math:longest_subsequences(Parts),
+    io:format("~s~n",
+              [string:join(lists:map(fun integer_to_list/1, Inc), " ")]),
+    io:format("~s~n",
+              [string:join(lists:map(fun integer_to_list/1, Dec), " ")]).
 
 %% string functions
 
