@@ -2,7 +2,8 @@
 
 -export([fib/2, fibd/2, iprb/3, iev/6, lia/2, perm/1,
          rosalind_rounding/1, signed_permutations/1,
-         rosalind_rounding/2, complete_tree/2, longest_subsequences/1]).
+         rosalind_rounding/2, complete_tree/2, longest_subsequences/1,
+         fact/1]).
 
 fib(N, K) ->
     fib(N, K, 1, 0).
@@ -74,6 +75,13 @@ rosalind_rounding(N, E) ->
     Pow = math:pow(10, E),
     round(N * Pow) / Pow.
 
+% lia
+fact(N) -> fact(N, 1).
+
+fact(0, Acc) -> Acc;
+fact(N, Acc) ->
+    fact(N - 1, Acc * N).
+
 % lgis
 longest_subsequences(List) ->
     Inc = fun(A, B) -> A < B end,
@@ -81,13 +89,6 @@ longest_subsequences(List) ->
     {find_sequence(Inc, List), find_sequence(Dec, List)}.
 
 %% helper methods
-
-% lia
-fact(N) -> fact(N, 1).
-
-fact(0, Acc) -> Acc;
-fact(N, Acc) ->
-    fact(N - 1, Acc * N).
 
 % lia
 binomial_coefficient(N, K) ->

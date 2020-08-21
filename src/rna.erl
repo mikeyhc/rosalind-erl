@@ -1,7 +1,7 @@
 -module(rna).
 
 -export([to_protein/1, codon_table/0, reverse_codon_table/0, to_proteins/1,
-         rna_splice/2]).
+         rna_splice/2, rna_folding/1]).
 
 to_protein(RNA) ->
     lists:reverse(build_protein(RNA, [])).
@@ -28,6 +28,15 @@ rna_splice(String, Introns) ->
     Sorted = lists:sort(fun(A, B) -> length(A) > length(B) end, Introns),
     Exons = lists:foldl(fun remove_intron/2, String, Sorted),
     rna:to_protein(Exons).
+
+% pmch
+rna_folding(Rna) ->
+    Fn = fun($A, {A, C}) -> {A + 1, C};
+            ($C, {A, C}) -> {A, C + 1};
+            (_, Acc) -> Acc
+         end,
+    {A, C} = lists:foldl(Fn, {0, 0}, Rna),
+    rosalind_math:fact(A) * rosalind_math:fact(C).
 
 %% internal functions
 

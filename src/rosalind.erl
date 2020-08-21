@@ -135,7 +135,11 @@ command_list() ->
         #{"prot" =>
           #{description => "convert an RNA to a protein",
             arg => "PATH",
-            function => fun prot/1}}},
+            function => fun prot/1},
+         "pmch" =>
+         #{description => "determine the total number of RNA foldings",
+           arg => "PATH",
+           function => fun pmch/1}}},
       "string" =>
       #{description => "operations on strings",
         commands =>
@@ -296,6 +300,10 @@ tran([Path]) ->
 prot([Path]) ->
     {ok, [S1]} = rosalind_file:multiline_file(Path),
     io:format("~s~n", [rna:to_protein(S1)]).
+
+pmch([Path]) ->
+    {ok, [{_, RNA}]} = rosalind_file:fasta_file(Path),
+    io:format("~p~n", [rna:rna_folding(RNA)]).
 
 %% math functions
 
