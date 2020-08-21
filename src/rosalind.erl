@@ -88,7 +88,12 @@ command_list() ->
          "long" =>
          #{description => "determine the shortest superstring",
            arg => "PATH",
-           function => fun long/1}}},
+           function => fun long/1},
+         "prob" =>
+         #{description => "determine the likelyhood of the provided string "
+                          "occuring with the given GC probabilities",
+           arg => "PATH",
+           function => fun prob/1}}},
       "math" =>
       #{description => "math based functions",
         commands =>
@@ -298,6 +303,16 @@ tran([Path]) ->
     {ok, [{_, S1}, {_, S2}]} = rosalind_file:fasta_file(Path),
     Ratio = dna:transition_transversion(S1, S2),
     io:format("~13.11f~n", [rosalind_math:rosalind_rounding(Ratio, 11)]).
+
+prob([Path]) ->
+    {ok, [DNA, StrProbs]} = rosalind_file:multiline_file(Path),
+    InProbs = lists:map(fun list_to_float/1, string:split(StrProbs, " ", all)),
+    OutProbs = dna:random_strings(DNA, InProbs),
+    Render = fun(X) ->
+                     io:format("~8.3f ", [rosalind_math:rosalind_rounding(X)])
+             end,
+    lists:foreach(Render, OutProbs),
+    io:format("~n").
 
 %% rna functions
 

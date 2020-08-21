@@ -3,7 +3,7 @@
 -export([count/1, to_rna/1, compliment/1, highest_gc/1, hamming/2,
          consensus/1, overlap/1, shared_motif/1, open_reading_frames/1,
          reverse_palindrome/1, restriction_sites/1, spliced_motif/2,
-         transition_transversion/2, shortest_superstring/1]).
+         transition_transversion/2, shortest_superstring/1, random_strings/2]).
 
 % dna
 count(DNA) ->
@@ -106,6 +106,16 @@ transition_transversion(S1, S2) ->
 % long
 shortest_superstring(Dna) ->
     reduce_graph(to_overlap_graph(Dna)).
+
+% prob
+random_strings(Dna, Probs) ->
+    #{$A := A, $C := C, $G := G, $T := T} = count(Dna),
+    AT = A + T,
+    CG = C + G,
+    Fn = fun(Prob) ->
+                 AT * math:log10((1 - Prob) / 2) + CG * math:log10(Prob / 2)
+         end,
+    lists:map(Fn, Probs).
 
 %% internal functions
 
