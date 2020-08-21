@@ -148,7 +148,11 @@ command_list() ->
          "pmch" =>
          #{description => "determine the total number of RNA foldings",
            arg => "PATH",
-           function => fun pmch/1}}},
+           function => fun pmch/1},
+         "cat" =>
+         #{description => "determine the number of non-crossing RNA foldings",
+           arg => "PATH",
+           function => fun cat/1}}},
       "string" =>
       #{description => "operations on strings",
         commands =>
@@ -323,6 +327,10 @@ prot([Path]) ->
 pmch([Path]) ->
     {ok, [{_, RNA}]} = rosalind_file:fasta_file(Path),
     io:format("~p~n", [rna:rna_folding(RNA)]).
+
+cat([Path]) ->
+    {ok, [{_, RNA}]} = rosalind_file:fasta_file(Path),
+    io:format("~p~n", [rna:non_crossing_folding(RNA) rem 1_000_000]).
 
 %% math functions
 

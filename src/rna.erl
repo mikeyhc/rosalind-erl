@@ -1,7 +1,7 @@
 -module(rna).
 
 -export([to_protein/1, codon_table/0, reverse_codon_table/0, to_proteins/1,
-         rna_splice/2, rna_folding/1]).
+         rna_splice/2, rna_folding/1, non_crossing_folding/1]).
 
 to_protein(RNA) ->
     lists:reverse(build_protein(RNA, [])).
@@ -37,6 +37,11 @@ rna_folding(Rna) ->
          end,
     {A, C} = lists:foldl(Fn, {0, 0}, Rna),
     rosalind_math:fact(A) * rosalind_math:fact(C).
+
+% cat
+non_crossing_folding(Rna) ->
+    #{Rna := Count} = rna_catalan(Rna, #{}),
+    Count.
 
 %% internal functions
 
@@ -82,4 +87,15 @@ remove_intron(Intron, S=[H|T], Acc) ->
     case string:prefix(S, Intron) of
         nomatch -> remove_intron(Intron, T, [H|Acc]);
         Rest -> remove_intron(Intron, Rest, Acc)
+    end.
+
+% cat
+rna_catalan([], _Memo) -> 0;
+rna_catalan([_], _Memo) -> 1;
+rna_catalan(Rna=[H|T], Memo) ->
+    case maps:get(Rna, Memo, undefined) of
+        undefined ->
+            Total = run_catalan_(H, T, Memo),
+            Memo#{Rna := Total};
+        Count -> Count
     end.
