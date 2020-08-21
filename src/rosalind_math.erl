@@ -3,7 +3,7 @@
 -export([fib/2, fibd/2, iprb/3, iev/6, lia/2, perm/1,
          rosalind_rounding/1, signed_permutations/1,
          rosalind_rounding/2, complete_tree/2, longest_subsequences/1,
-         fact/1]).
+         fact/1, partial_permutations/2]).
 
 fib(N, K) ->
     fib(N, K, 1, 0).
@@ -87,6 +87,10 @@ longest_subsequences(List) ->
     Inc = fun(A, B) -> A < B end,
     Dec = fun(A, B) -> A > B end,
     {find_sequence(Inc, List), find_sequence(Dec, List)}.
+
+% pper
+partial_permutations(N, K) ->
+    floor(fact(N) / fact(N - K)).
 
 %% helper methods
 

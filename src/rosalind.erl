@@ -128,7 +128,11 @@ command_list() ->
          "lgis" =>
          #{description => "find the longest subsequences",
            arg => "PATH",
-           function => fun lgis/1}}},
+           function => fun lgis/1},
+         "pper" =>
+         #{description => "calculate the number of partial permutations",
+           arg => "N K",
+           function => fun pper/1}}},
       "rna" =>
       #{description => "operations on RNA",
         commands =>
@@ -364,6 +368,11 @@ lgis([Path]) ->
               [string:join(lists:map(fun integer_to_list/1, Inc), " ")]),
     io:format("~s~n",
               [string:join(lists:map(fun integer_to_list/1, Dec), " ")]).
+
+pper([N, K]) ->
+    Partials = rosalind_math:partial_permutations(list_to_integer(N),
+                                                  list_to_integer(K)),
+    io:format("~w~n", [Partials rem 1_000_000]).
 
 %% string functions
 
