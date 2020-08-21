@@ -3,7 +3,7 @@
 -export([count/1, to_rna/1, compliment/1, highest_gc/1, hamming/2,
          consensus/1, overlap/1, shared_motif/1, open_reading_frames/1,
          reverse_palindrome/1, restriction_sites/1, spliced_motif/2,
-         transition_transversion/2]).
+         transition_transversion/2, shortest_superstring/1]).
 
 % dna
 count(DNA) ->
@@ -102,6 +102,10 @@ spliced_motif(Base, Sub) ->
 transition_transversion(S1, S2) ->
     {X, Y} = tran(S1, S2, 0, 0),
     Y / X.
+
+% long
+shortest_superstring(Dna) ->
+    reduce_graph(to_overlap_graph(Dna)).
 
 %% internal functions
 
@@ -215,3 +219,122 @@ is_transition(C1, C2) ->
 is_guanine($A) -> true;
 is_guanine($G) -> true;
 is_guanine(_) -> false.
+
+% long
+reduce_graph(Graph) ->
+    case maps:size(Graph) of
+        1 ->
+            [S] = maps:keys(Graph),
+           S;
+        _ ->
+           reduce_graph(reduce_graph_step(Graph))
+    end.
+
+
+% long
+reduce_graph_step(Graph0) ->
+    {Left, Right, Size} = largest_overlap(Graph0),
+    New = lists:sublist(Left, length(Left) - Size) ++ Right,
+    LeftChildren = maps:get(Left, Graph0),
+    Graph1 = maps:remove(Left, Graph0),
+    RightChildren = maps:get(Right, Graph1),
+    Graph2 = maps:remove(Right, Graph1),
+    Children = merge_children(maps:to_list(maps:remove(Right, LeftChildren)),
+                              maps:to_list(maps:remove(Left, RightChildren))),
+    update_graph(Left, Right, New, Graph2#{New => maps:from_list(Children)}).
+
+% long
+update_graph(Left, Right, New, Graph) ->
+    Fn = fun(_Key, Value) ->
+                 LV = maps:get(Left, Value, -1),
+                 RV = maps:get(Right, Value, -1),
+                 V0 = maps:remove(Left, Value),
+                 V1 = maps:remove(Right, V0),
+                 if LV + RV =:= -2 -> Value;
+                    LV > RV -> V1#{New => LV};
+                    true -> V1#{New => RV}
+                 end
+         end,
+    maps:map(Fn, Graph).
+
+% long
+largest_overlap(Graph) ->
+    ListMax = fun(K, N, Acc={_, M}) ->
+                      if N > M -> {K, N};
+                         true -> Acc
+                      end
+              end,
+    Max = fun(K, V, Acc={_, _, M}) ->
+                  {O, N} = maps:fold(ListMax, {undefined, 0}, V),
+                  if N > M -> {K, O, N};
+                     true -> Acc
+                  end
+          end,
+    maps:fold(Max, {undefined, undefined, 0}, Graph).
+
+% long
+to_overlap_graph(L) ->
+    lists:foldl(fun build_overlap_graph/2, #{}, mapl(fun all_matches/2, L)).
+
+% long
+build_overlap_graph({Node, Children}, Acc) ->
+    lists:foldl(fun(C, A) -> build_graph_node(Node, C, A) end, Acc, Children).
+
+% long
+build_graph_node(Node, {Other, Left, Right}, A0) ->
+    A1 = if Left =:= undefined -> A0;
+            true ->
+                 CurLeft = maps:get(Node, A0, #{}),
+                 A0#{Node => CurLeft#{Other => length(Node) - Left}}
+         end,
+    if Right =:= undefined -> A1;
+       true ->
+           CurRight = maps:get(Other, A1, #{}),
+           A1#{Other => CurRight#{Node => length(Other) - Right}}
+    end.
+
+% long
+all_matches(Current, Rest) ->
+    {Current, lists:map(fun(X) -> matches(Current, X) end, Rest)}.
+
+% long
+matches(A, B) ->
+    L = matches(A, B, 0),
+    R = matches(B, A, 0),
+    {B, L, R}.
+
+% long
+matches([], _, _) -> undefined;
+matches(A=[_|T], B, N) ->
+    case is_match(A, B) of
+        true -> N;
+        false -> matches(T, B, N+1)
+    end.
+
+% long
+is_match([], _) -> true;
+is_match(_, []) -> true;
+is_match([H|A], [H|B]) ->
+    is_match(A, B);
+is_match(_, _) -> false.
+
+% long
+mapl(Fn, L) ->
+    mapl(Fn, L, []).
+
+% long
+mapl(_Fn, [], Acc) -> lists:reverse(Acc);
+mapl(Fn, [H|T], Acc) ->
+    mapl(Fn, T, [Fn(H, T)|Acc]).
+
+% long
+merge_children([], R) -> R;
+merge_children([H={K, X}|T], R) ->
+    case lists:keyfind(K, 1, R) of
+        {_, Y} ->
+            if X > Y ->
+                   merge_children(T, lists:keystore(K, 1, R, H));
+               true -> merge_children(T, R)
+            end;
+        false -> merge_children(T, [H|R])
+    end.

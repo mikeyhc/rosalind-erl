@@ -84,7 +84,11 @@ command_list() ->
          "tran" =>
          #{description => "find the transition/transversion ratio",
            arg => "PATH",
-           function => fun tran/1}}},
+           function => fun tran/1},
+         "long" =>
+         #{description => "determine the shortest superstring",
+           arg => "PATH",
+           function => fun long/1}}},
       "math" =>
       #{description => "math based functions",
         commands =>
@@ -265,6 +269,10 @@ revp([Path]) ->
     Sites = dna:restriction_sites(Dna),
     lists:foreach(fun({P, L}) -> io:format("~w ~w~n", [P, L]) end, Sites).
 
+long([Path]) ->
+    {ok, Fasta} = rosalind_file:fasta_file(Path),
+    Dna = lists:map(fun({_, X}) -> X end, Fasta),
+    io:format("~s~n", [dna:shortest_superstring(Dna)]).
 
 splc([Path]) ->
     {ok, Fastas} = rosalind_file:fasta_file(Path),
