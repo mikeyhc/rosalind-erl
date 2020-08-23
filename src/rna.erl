@@ -40,8 +40,8 @@ rna_folding(Rna) ->
 
 % cat
 non_crossing_folding(Rna) ->
-    #{Rna := Count} = rna_catalan(Rna, #{}),
-    Count.
+    {V, _Memo} = rc_with_memo(Rna, #{}),
+    V.
 
 %% internal functions
 
@@ -90,12 +90,49 @@ remove_intron(Intron, S=[H|T], Acc) ->
     end.
 
 % cat
-rna_catalan([], _Memo) -> 0;
-rna_catalan([_], _Memo) -> 1;
-rna_catalan(Rna=[H|T], Memo) ->
-    case maps:get(Rna, Memo, undefined) of
-        undefined ->
-            Total = run_catalan_(H, T, Memo),
-            Memo#{Rna := Total};
-        Count -> Count
+rna_catalan(_R, [], _Hist, Total, Memo) -> {Total, Memo};
+rna_catalan(R, [H], [], Total, Memo) ->
+    case is_bonding(R, H) of
+        true -> {Total + 1, Memo};
+        false -> {Total, Memo}
+    end;
+rna_catalan(R, [H], Hist, Total, Memo) ->
+    case is_bonding(R, H) of
+        true ->
+            {Backward, M0} = rc_with_memo(Hist, Memo),
+            {Total + Backward, M0};
+        false -> {Total, Memo}
+    end;
+rna_catalan(R, [H,I|T], [], Total, Memo) ->
+    case is_bonding(R, H) of
+        true ->
+            {Forward, M0} = rc_with_memo([I|T], Memo),
+            rna_catalan(R, T, [I,H], Total + Forward, M0);
+        false ->
+            rna_catalan(R, T, [I,H], Total, Memo)
+    end;
+rna_catalan(R, [H,I|T], Hist, Total, Memo) ->
+    case is_bonding(R, H) of
+        true ->
+            {Forward, M0} = rc_with_memo([I|T], Memo),
+            {Backward, M1} = rc_with_memo(Hist, M0),
+            rna_catalan(R, T, [I,H|Hist], Total + Forward * Backward, M1);
+        false ->
+            rna_catalan(R, T, [I,H|Hist], Total, Memo)
+    end.
+
+% cat
+is_bonding($A, $U) -> true;
+is_bonding($U, $A) -> true;
+is_bonding($C, $G) -> true;
+is_bonding($G, $C) -> true;
+is_bonding(_, _) -> false.
+
+% cat
+rc_with_memo(Rna=[H|T], Memo) ->
+    case maps:get(Rna, Memo, false) of
+        false ->
+            {Out, M0} = rna_catalan(H, T, [], 0, Memo),
+            {Out, M0#{Rna => Out}};
+        V -> {V, Memo}
     end.
