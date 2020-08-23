@@ -141,7 +141,12 @@ command_list() ->
          "pper" =>
          #{description => "calculate the number of partial permutations",
            arg => "N K",
-           function => fun pper/1}}},
+           function => fun pper/1},
+         "inod" =>
+         #{description => "determine the number of internal nodes in a binary "
+                          "tree",
+           arg => "N",
+           function => fun inod/1}}},
       "rna" =>
       #{description => "operations on RNA",
         commands =>
@@ -406,6 +411,9 @@ pper([N, K]) ->
     Partials = rosalind_math:partial_permutations(list_to_integer(N),
                                                   list_to_integer(K)),
     io:format("~w~n", [Partials rem 1_000_000]).
+
+inod([N]) ->
+    io:format("~w~n", [rosalind_math:tree_nodes(list_to_integer(N))]).
 
 %% string functions
 
