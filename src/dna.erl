@@ -3,7 +3,8 @@
 -export([count/1, to_rna/1, compliment/1, highest_gc/1, hamming/2,
          consensus/1, overlap/1, shared_motif/1, open_reading_frames/1,
          reverse_palindrome/1, restriction_sites/1, spliced_motif/2,
-         transition_transversion/2, shortest_superstring/1, random_strings/2]).
+         transition_transversion/2, shortest_superstring/1, random_strings/2,
+         corrections/1]).
 
 % dna
 count(DNA) ->
@@ -116,6 +117,10 @@ random_strings(Dna, Probs) ->
                  AT * math:log10((1 - Prob) / 2) + CG * math:log10(Prob / 2)
          end,
     lists:map(Fn, Probs).
+
+% corr
+corrections(Dnas) ->
+    find_corrections(Dnas, sets:new(), sets:new()).
 
 %% internal functions
 
@@ -347,4 +352,35 @@ merge_children([H={K, X}|T], R) ->
                true -> merge_children(T, R)
             end;
         false -> merge_children(T, [H|R])
+    end.
+
+% corr
+find_corrections([], Unseen, Seen) ->
+    build_corrections(sets:to_list(Unseen), Seen, []);
+find_corrections([H|T], Unseen, Seen) ->
+    Comp = compliment(H),
+    case sets:is_element(H, Unseen) orelse sets:is_element(Comp, Unseen)
+         orelse sets:is_element(H, Seen) of
+        true ->
+            U0 = sets:del_element(Comp, sets:del_element(H, Unseen)),
+            S0 = sets:add_element(Comp, sets:add_element(H, Seen)),
+            find_corrections(T, U0, S0);
+        false ->
+            find_corrections(T, sets:add_element(H, Unseen), Seen)
+    end.
+
+% corr
+build_corrections([], _Seen, Corrections) -> Corrections;
+build_corrections([H|T], Seen, Corrections) ->
+    try
+        Find = fun(E, Acc) ->
+                       case hamming(H, E) of
+                           1 -> throw({found, E});
+                           _ -> Acc
+                       end
+               end,
+        sets:fold(Find, unused, Seen),
+        throw({invalid_state, H})
+    catch
+        {found, E} -> build_corrections(T, Seen, [{H, E}|Corrections])
     end.

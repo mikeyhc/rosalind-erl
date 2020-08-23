@@ -93,7 +93,11 @@ command_list() ->
          #{description => "determine the likelyhood of the provided string "
                           "occuring with the given GC probabilities",
            arg => "PATH",
-           function => fun prob/1}}},
+           function => fun prob/1},
+         "corr" =>
+         #{description => "attempt to correct read errors in DNA sequences",
+           arg => "PATH",
+           function => fun corr/1}}},
       "math" =>
       #{description => "math based functions",
         commands =>
@@ -317,6 +321,12 @@ prob([Path]) ->
              end,
     lists:foreach(Render, OutProbs),
     io:format("~n").
+
+corr([Path]) ->
+    {ok, Fasta} = rosalind_file:fasta_file(Path),
+    Dna = lists:map(fun({_, D}) -> D end, Fasta),
+    Corrs = dna:corrections(Dna),
+    lists:foreach(fun({D, C}) -> io:format("~s->~s~n", [D, C]) end, Corrs).
 
 %% rna functions
 
