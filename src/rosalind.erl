@@ -216,7 +216,7 @@ handle_subcommand(_Group, _Command, #{function := F}, Arg, _ExpectedArgs) ->
 
 %% usage functions
 
-command_usage(Group, #{commands := Command}) ->
+command_usage(Group, Command) ->
     io:format("usage: ~s ~s COMMAND~n~n", [escript:script_name(), Group]),
     io:format("commands~n"),
     F = fun({Key, #{description := Desc}}) ->
