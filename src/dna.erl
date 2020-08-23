@@ -4,7 +4,7 @@
          consensus/1, overlap/1, shared_motif/1, open_reading_frames/1,
          reverse_palindrome/1, restriction_sites/1, spliced_motif/2,
          transition_transversion/2, shortest_superstring/1, random_strings/2,
-         corrections/1]).
+         corrections/1, four_mer_composition/1]).
 
 % dna
 count(DNA) ->
@@ -121,6 +121,11 @@ random_strings(Dna, Probs) ->
 % corr
 corrections(Dnas) ->
     find_corrections(Dnas, sets:new(), sets:new()).
+
+% kmer
+four_mer_composition(Dna) ->
+    lists:map(fun(X) -> count_kmer(Dna, X, 0) end,
+              rosalind_string:all_kmers("ACGT", 4)).
 
 %% internal functions
 
@@ -383,4 +388,12 @@ build_corrections([H|T], Seen, Corrections) ->
         throw({invalid_state, H})
     catch
         {found, E} -> build_corrections(T, Seen, [{H, E}|Corrections])
+    end.
+
+% kmer
+count_kmer([], _Kmer, N) -> N;
+count_kmer(S=[_|T], Kmer, N) ->
+    case string:prefix(S, Kmer) of
+        nomatch -> count_kmer(T, Kmer, N);
+        _ -> count_kmer(T, Kmer, N + 1)
     end.

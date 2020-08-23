@@ -8,7 +8,7 @@ substring_idx(Prefix, String) ->
 
 % lexf
 all_kmers(Symbols, Length) ->
-    lists:sort(sets:to_list(all_kmers_(Symbols, Length))).
+    lists:sort(gen_kmers(Symbols, Length)).
 
 %% internal functions
 
@@ -24,13 +24,5 @@ substring_idx(Prefix, L=[_|T], Idx, Acc) ->
     end.
 
 % lexf
-all_kmers_(Symbols, 1) ->
-    sets:from_list(lists:map(fun(X) -> [X] end, Symbols));
-all_kmers_(Symbols, N) ->
-    Lower = all_kmers_(Symbols, N - 1),
-    Fn = fun(Base) ->
-                 F = fun(C) -> [C|Base] end,
-                 lists:map(F, Symbols)
-         end,
-    New = lists:flatmap(Fn, sets:to_list(Lower)),
-    sets:from_list(New).
+gen_kmers(_L, 0) -> [[]];
+gen_kmers(L, N) -> [[H|T] || H <- L, T <- gen_kmers(L, N - 1)].

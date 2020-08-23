@@ -97,7 +97,12 @@ command_list() ->
          "corr" =>
          #{description => "attempt to correct read errors in DNA sequences",
            arg => "PATH",
-           function => fun corr/1}}},
+           function => fun corr/1},
+         "kmer" =>
+         #{description => "count all the occurances of the 4-mers in the given "
+                          "dna",
+           arg => "PATH",
+           function => fun kmer/1}}},
       "math" =>
       #{description => "math based functions",
         commands =>
@@ -332,6 +337,11 @@ corr([Path]) ->
     Dna = lists:map(fun({_, D}) -> D end, Fasta),
     Corrs = dna:corrections(Dna),
     lists:foreach(fun({D, C}) -> io:format("~s->~s~n", [D, C]) end, Corrs).
+
+kmer([Path]) ->
+    {ok, [{_, Dna}]} = rosalind_file:fasta_file(Path),
+    Counts = lists:map(fun integer_to_list/1, dna:four_mer_composition(Dna)),
+    io:format("~s~n", [string:join(Counts, " ")]).
 
 %% rna functions
 
