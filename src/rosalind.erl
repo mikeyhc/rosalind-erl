@@ -102,7 +102,11 @@ command_list() ->
          #{description => "count all the occurances of the 4-mers in the given "
                           "dna",
            arg => "PATH",
-           function => fun kmer/1}}},
+           function => fun kmer/1},
+         "kmp" =>
+         #{description => "create a KMP failure function for the given DNA",
+           arg => "PATH",
+           function => fun kmp/1}}},
       "math" =>
       #{description => "math based functions",
         commands =>
@@ -342,6 +346,12 @@ kmer([Path]) ->
     {ok, [{_, Dna}]} = rosalind_file:fasta_file(Path),
     Counts = lists:map(fun integer_to_list/1, dna:four_mer_composition(Dna)),
     io:format("~s~n", [string:join(Counts, " ")]).
+
+kmp([Path]) ->
+    {ok, [{_, Dna}]} = rosalind_file:fasta_file(Path),
+    Failure = lists:map(fun integer_to_list/1,
+                        rosalind_string:kmp_failure(Dna)),
+    io:format("~s~n", [string:join(Failure, " ")]).
 
 %% rna functions
 
