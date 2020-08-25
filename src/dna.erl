@@ -4,7 +4,7 @@
          consensus/1, overlap/1, shared_motif/1, open_reading_frames/1,
          reverse_palindrome/1, restriction_sites/1, spliced_motif/2,
          transition_transversion/2, shortest_superstring/1, random_strings/2,
-         corrections/1, four_mer_composition/1]).
+         corrections/1, four_mer_composition/1, distance_matrix/1]).
 
 % dna
 count(DNA) ->
@@ -126,6 +126,16 @@ corrections(Dnas) ->
 four_mer_composition(Dna) ->
     lists:map(fun(X) -> count_kmer(Dna, X, 0) end,
               rosalind_string:all_kmers("ACGT", 4)).
+
+% pdst
+distance_matrix(Dna=[H|_]) ->
+    Len = length(H),
+    Fn = fun(X) ->
+                 F = fun(Y) -> hamming(X, Y) / Len end,
+                 lists:map(F, Dna)
+         end,
+    lists:map(Fn, Dna).
+
 
 %% internal functions
 

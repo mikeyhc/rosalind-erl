@@ -106,7 +106,11 @@ command_list() ->
          "kmp" =>
          #{description => "create a KMP failure function for the given DNA",
            arg => "PATH",
-           function => fun kmp/1}}},
+           function => fun kmp/1},
+         "pdst" =>
+         #{description => "create a difference matrix for the given DNA",
+           arg => "PATH",
+           function => fun pdst/1}}},
       "math" =>
       #{description => "math based functions",
         commands =>
@@ -361,6 +365,19 @@ kmp([Path]) ->
     Failure = lists:map(fun integer_to_list/1,
                         rosalind_string:kmp_failure(Dna)),
     io:format("~s~n", [string:join(Failure, " ")]).
+
+pdst([Path]) ->
+    {ok, Fasta} = rosalind_file:fasta_file(Path),
+    Dna = lists:map(fun({_, D}) -> D end, Fasta),
+    Matrix = dna:distance_matrix(Dna),
+    RFn = fun(V) ->
+                  io:format("~8.6f ", [rosalind_math:rosalind_rounding(V, 8)])
+          end,
+    Render = fun(L) ->
+                     lists:foreach(RFn, L),
+                     io:format("~n")
+             end,
+    lists:foreach(Render, Matrix).
 
 %% rna functions
 
