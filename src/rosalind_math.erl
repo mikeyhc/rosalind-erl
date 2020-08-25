@@ -3,7 +3,7 @@
 -export([fib/2, fibd/2, iprb/3, iev/6, lia/2, perm/1,
          rosalind_rounding/1, signed_permutations/1,
          rosalind_rounding/2, complete_tree/2, longest_subsequences/1,
-         fact/1, partial_permutations/2, tree_nodes/1]).
+         fact/1, partial_permutations/2, tree_nodes/1, subset_count/1]).
 
 fib(N, K) ->
     fib(N, K, 1, 0).
@@ -95,6 +95,10 @@ partial_permutations(N, K) ->
 % inod
 tree_nodes(N) when N < 3 -> 0;
 tree_nodes(N) -> N - 2.
+
+% sset
+subset_count(N) ->
+    floor(math:pow(2, N)).
 
 %% helper methods
 

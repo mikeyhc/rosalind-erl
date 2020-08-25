@@ -155,7 +155,11 @@ command_list() ->
          #{description => "determine the number of internal nodes in a binary "
                           "tree",
            arg => "N",
-           function => fun inod/1}}},
+           function => fun inod/1},
+         "sset" =>
+         #{description => "count the number of subsets for a give set size",
+           arg => "N",
+           function => fun sset/1}}},
       "rna" =>
       #{description => "operations on RNA",
         commands =>
@@ -443,6 +447,10 @@ pper([N, K]) ->
 
 inod([N]) ->
     io:format("~w~n", [rosalind_math:tree_nodes(list_to_integer(N))]).
+
+sset([N]) ->
+    io:format("~w~n", [rosalind_math:subset_count(list_to_integer(N))
+                       rem 1_000_000]).
 
 %% string functions
 
