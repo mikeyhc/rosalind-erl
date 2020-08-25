@@ -170,7 +170,12 @@ command_list() ->
          "cat" =>
          #{description => "determine the number of non-crossing RNA foldings",
            arg => "PATH",
-           function => fun cat/1}}},
+           function => fun cat/1},
+         "mmch" =>
+         #{description => "determine the number of maximum matches the RNA is "
+                          "capable of",
+           arg => "PATH",
+           function => fun mmch/1}}},
       "string" =>
       #{description => "operations on strings",
         commands =>
@@ -201,7 +206,7 @@ command_list() ->
          arg => "PATH",
          function => fun prtm/1}}}}.
 
-handle_command(Commands, Group, []) ->
+handle_command(#{commands := Commands}, Group, []) ->
     %% TODO stderr
     io:format("no command provided~n"),
     command_usage(Group, Commands),
@@ -366,6 +371,10 @@ pmch([Path]) ->
 cat([Path]) ->
     {ok, [{_, RNA}]} = rosalind_file:fasta_file(Path),
     io:format("~p~n", [rna:non_crossing_folding(RNA) rem 1_000_000]).
+
+mmch([Path]) ->
+    {ok, [{_, RNA}]} = rosalind_file:fasta_file(Path),
+    io:format("~w~n", [rna:max_matching(RNA)]).
 
 %% math functions
 

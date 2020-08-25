@@ -1,7 +1,7 @@
 -module(rna).
 
 -export([to_protein/1, codon_table/0, reverse_codon_table/0, to_proteins/1,
-         rna_splice/2, rna_folding/1, non_crossing_folding/1]).
+         rna_splice/2, rna_folding/1, non_crossing_folding/1, max_matching/1]).
 
 to_protein(RNA) ->
     lists:reverse(build_protein(RNA, [])).
@@ -42,6 +42,13 @@ rna_folding(Rna) ->
 non_crossing_folding(Rna) ->
     {V, _Memo} = rc_with_memo(Rna, #{}),
     V.
+
+% mmch
+max_matching(Rna) ->
+    #{$A := A, $C := C, $G := G, $U := U} = dna:count(Rna),
+    {AMax, AMin} = {max(A, U), min(A, U)},
+    {CMax, CMin} = {max(C, G), min(C, G)},
+    mmch_fact(AMax - AMin, AMax, 1) * mmch_fact(CMax - CMin, CMax, 1).
 
 %% internal functions
 
@@ -136,3 +143,8 @@ rc_with_memo(Rna=[H|T], Memo) ->
             {Out, M0#{Rna => Out}};
         V -> {V, Memo}
     end.
+
+% mmch
+mmch_fact(X, X, Acc) -> Acc;
+mmch_fact(X, Y, Acc) ->
+    mmch_fact(X + 1, Y, Acc * (X + 1)).
