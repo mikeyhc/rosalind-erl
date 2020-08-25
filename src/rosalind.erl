@@ -110,7 +110,12 @@ command_list() ->
          "pdst" =>
          #{description => "create a difference matrix for the given DNA",
            arg => "PATH",
-           function => fun pdst/1}}},
+           function => fun pdst/1},
+         "rstr" =>
+         #{description => "calculate the possibility of the random string "
+                          "occuring",
+           arg => "PATH",
+           function => fun rstr/1}}},
       "math" =>
       #{description => "math based functions",
         commands =>
@@ -378,6 +383,14 @@ pdst([Path]) ->
                      io:format("~n")
              end,
     lists:foreach(Render, Matrix).
+
+rstr([Path]) ->
+    {ok, [Nums, Dna]} = rosalind_file:multiline_file(Path),
+    [SN, SX] = string:split(Nums, " "),
+    Prob = dna:random_string_chance(list_to_integer(SN),
+                                    list_to_float(SX),
+                                    Dna),
+    io:format("~5.3f~n", [rosalind_math:rosalind_rounding(Prob)]).
 
 %% rna functions
 

@@ -4,7 +4,8 @@
          consensus/1, overlap/1, shared_motif/1, open_reading_frames/1,
          reverse_palindrome/1, restriction_sites/1, spliced_motif/2,
          transition_transversion/2, shortest_superstring/1, random_strings/2,
-         corrections/1, four_mer_composition/1, distance_matrix/1]).
+         corrections/1, four_mer_composition/1, distance_matrix/1,
+         random_string_chance/3]).
 
 % dna
 count(DNA) ->
@@ -136,6 +137,11 @@ distance_matrix(Dna=[H|_]) ->
          end,
     lists:map(Fn, Dna).
 
+% rstr
+random_string_chance(N, X, S) ->
+    #{$A := A, $C := C, $G := G, $T := T} = count(S),
+    Ps = math:pow(X / 2, C + G) * math:pow((1 - X) / 2, A + T),
+    1 - math:pow(1 - Ps, N).
 
 %% internal functions
 
