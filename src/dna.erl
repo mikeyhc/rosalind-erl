@@ -5,7 +5,7 @@
          reverse_palindrome/1, restriction_sites/1, spliced_motif/2,
          transition_transversion/2, shortest_superstring/1, random_strings/2,
          corrections/1, four_mer_composition/1, distance_matrix/1,
-         random_string_chance/3]).
+         random_string_chance/3, spliced_shared_motif/2]).
 
 % dna
 count(DNA) ->
@@ -142,6 +142,12 @@ random_string_chance(N, X, S) ->
     #{$A := A, $C := C, $G := G, $T := T} = count(S),
     Ps = math:pow(X / 2, C + G) * math:pow((1 - X) / 2, A + T),
     1 - math:pow(1 - Ps, N).
+
+% lcsq
+spliced_shared_motif(A, B) ->
+    M0 = build_lcs_table(length(A), length(B)),
+    M1 = populate_lcs(A, B, M0),
+    lcs_backtrack(A, B, M1).
 
 %% internal functions
 
@@ -412,4 +418,49 @@ count_kmer(S=[_|T], Kmer, N) ->
     case string:prefix(S, Kmer) of
         nomatch -> count_kmer(T, Kmer, N);
         _ -> count_kmer(T, Kmer, N + 1)
+    end.
+
+% lcsq
+build_lcs_table(ALen, BLen) ->
+    Fn = fun(X, Acc) ->
+                 F = fun(Y, A) -> A#{{X, Y} => 0} end,
+                 lists:foldl(F, Acc, lists:seq(0, BLen))
+         end,
+    lists:foldl(Fn, #{{0, 0} => 0}, lists:seq(0, ALen)).
+
+% lcsq
+populate_lcs(A, B, Matrix) ->
+    populate_lcs(A, 1, B, Matrix).
+
+% lcsq
+populate_lcs([], _I, _B, Matrix) -> Matrix;
+populate_lcs([H|T], I, B, Matrix) ->
+    M0 = populate_lcs(H, I, B, 1, Matrix),
+    populate_lcs(T, I + 1, B, M0).
+
+% lcsq
+populate_lcs(_A, _I, [], _J, Matrix) -> Matrix;
+populate_lcs(H, I, [H|T], J, Matrix) ->
+    Old = maps:get({I - 1, J - 1}, Matrix),
+    populate_lcs(H, I, T, J + 1, Matrix#{{I, J} => Old + 1});
+populate_lcs(H, I, [_|T], J, Matrix) ->
+    OldA = maps:get({I - 1, J}, Matrix),
+    OldB = maps:get({I, J - 1}, Matrix),
+    populate_lcs(H, I, T, J + 1, Matrix#{{I, J} => max(OldA, OldB)}).
+
+% lcsq
+lcs_backtrack(A, B, Matrix) ->
+    lcs_backtrack(Matrix, A, B, length(A), length(B), []).
+
+% lcsq
+lcs_backtrack(_Matrx, _A, _B, 0, _J, Acc) -> Acc;
+lcs_backtrack(_Matrx, _A, _B, _I, 0, Acc) -> Acc;
+lcs_backtrack(Matrix, A, B, I, J, Acc) ->
+    IA = lists:nth(I, A),
+    JB = lists:nth(J, B),
+    M1 = maps:get({I, J - 1}, Matrix),
+    M2 = maps:get({I - 1, J}, Matrix),
+    if IA =:= JB -> lcs_backtrack(Matrix, A, B, I - 1, J - 1, [IA|Acc]);
+       M1 > M2 -> lcs_backtrack(Matrix, A, B, I, J - 1, Acc);
+       true -> lcs_backtrack(Matrix, A, B, I - 1, J, Acc)
     end.

@@ -115,7 +115,11 @@ command_list() ->
          #{description => "calculate the possibility of the random string "
                           "occuring",
            arg => "PATH",
-           function => fun rstr/1}}},
+           function => fun rstr/1},
+         "lcsq" =>
+         #{description => "determine the longest common subsequence",
+           arg => "PATH",
+           function => fun lcsq/1}}},
       "math" =>
       #{description => "math based functions",
         commands =>
@@ -391,6 +395,10 @@ rstr([Path]) ->
                                     list_to_float(SX),
                                     Dna),
     io:format("~5.3f~n", [rosalind_math:rosalind_rounding(Prob)]).
+
+lcsq([Path]) ->
+    {ok, [{_, A}, {_, B}]} = rosalind_file:fasta_file(Path),
+    io:format("~s~n", [dna:spliced_shared_motif(A, B)]).
 
 %% rna functions
 
