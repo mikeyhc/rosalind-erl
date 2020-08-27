@@ -204,7 +204,11 @@ command_list() ->
           #{description => "created a sorted list of length N of sorted "
                            "alphabet A",
             arg => "PATH",
-            function => fun lexf/1}}},
+            function => fun lexf/1},
+          "lexv" =>
+          #{description => "generate all strings of length N from alphabet A",
+            arg => "PATH",
+            function => fun lexv/1}}},
      "prot" =>
      #{description => "operations on proteins",
       commands =>
@@ -503,6 +507,13 @@ lexf([Path]) ->
     N = list_to_integer(SNum),
     Dense = lists:filter(fun(X) -> X =/= $  end, Alphabet),
     Lex = rosalind_string:all_kmers(Dense, N),
+    lists:foreach(fun(S) -> io:format("~s~n", [S]) end, Lex).
+
+lexv([Path]) ->
+    {ok, [Alphabet, SNum]} = rosalind_file:multiline_file(Path),
+    N = list_to_integer(SNum),
+    Dense = lists:filter(fun(X) -> X =/= $  end, Alphabet),
+    Lex = rosalind_string:all_strings(Dense, N),
     lists:foreach(fun(S) -> io:format("~s~n", [S]) end, Lex).
 
 %% protein functions

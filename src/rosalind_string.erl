@@ -1,6 +1,6 @@
 -module(rosalind_string).
 
--export([substring_idx/2, all_kmers/2, kmp_failure/1]).
+-export([substring_idx/2, all_kmers/2, kmp_failure/1, all_strings/2]).
 
 % subs
 substring_idx(Prefix, String) ->
@@ -14,6 +14,11 @@ all_kmers(Symbols, Length) ->
 kmp_failure(S=[_|Str]) ->
     array:to_list(kmp_failure_(Str, array:from_list(S), 1, 0,
                                array:from_list([0]))).
+
+% lexv
+all_strings(Alphabet, N) ->
+    Fn = fun(X, Acc) -> lexv_depth([X], Alphabet, N, Acc) end,
+    lists:reverse(lists:foldl(Fn, [], Alphabet)).
 
 %% internal functions
 
@@ -60,3 +65,15 @@ cnd_prefix(Idx, Cnd, Pos, Str) ->
         true -> cnd_prefix(Idx + 1, Cnd - 1, Pos, Str);
         false -> false
     end.
+
+% lexv
+lexv_depth(Pre, _S, 1, Acc) -> [Pre|Acc];
+lexv_depth(Pre, S=[H|T], N, Acc) ->
+    Acc0 = lexv_depth(Pre ++ [H], S, N - 1, [Pre|Acc]),
+    lexv_breadth(Pre, S, T, N, Acc0).
+
+% lexv
+lexv_breadth(_Pre, _S, [], _N, Acc) -> Acc;
+lexv_breadth(Pre, S, [H|T], N, Acc) ->
+    Acc0 = lexv_depth(Pre ++ [H], S, N - 1, Acc),
+    lexv_breadth(Pre, S, T, N, Acc0).
