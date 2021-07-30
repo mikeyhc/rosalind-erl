@@ -3,7 +3,10 @@
 -export([fib/2, fibd/2, iprb/3, iev/6, lia/2, perm/1,
          rosalind_rounding/1, signed_permutations/1,
          rosalind_rounding/2, complete_tree/2, longest_subsequences/1,
-         fact/1, partial_permutations/2, tree_nodes/1, subset_count/1]).
+         fact/1, partial_permutations/2, tree_nodes/1, subset_count/1,
+         count_reversals/2]).
+
+-compile(export_all).
 
 fib(N, K) ->
     fib(N, K, 1, 0).
@@ -100,6 +103,10 @@ tree_nodes(N) -> N - 2.
 subset_count(N) ->
     floor(math:pow(2, N)).
 
+% rear
+count_reversals(L, O) ->
+    reversal_distance(sets:from_list([L]), sets:from_list([O]), 0, #{}).
+
 %% helper methods
 
 % lia
@@ -164,3 +171,60 @@ lgis_bin_search(Cmp, I, Lo, Hi, X, M) ->
 rebuild_sequence(0, K, X, _P, S) -> [array:get(K, X)|S];
 rebuild_sequence(L, K, X, P, S) ->
     rebuild_sequence(L - 1, array:get(K, P), X, P, [array:get(K, X)|S]).
+
+% rear
+all_reversals(L, Memo) ->
+    case maps:get(L, Memo, false) of
+        false ->
+            V = all_reversals(L, [], sets:new()),
+            {V, Memo#{L => V}};
+        V -> {V, Memo}
+    end.
+
+% rear
+all_reversals([], _Hist, Acc) -> Acc;
+all_reversals([_], _Hist, Acc) -> Acc;
+all_reversals([H|T], Hist, Acc) ->
+    Acc0 = all_reversals(lists:reverse(Hist), [H|T], [], Acc),
+    all_reversals(T, [H|Hist], Acc0).
+
+all_reversals(Prefix, [], Hist, Acc) ->
+    sets:add_element(Prefix ++ Hist, Acc);
+all_reversals(Prefix, [H|T], Hist, Acc) ->
+    Acc0 = sets:add_element(Prefix ++ Hist ++ [H|T], Acc),
+    all_reversals(Prefix, T, [H|Hist], Acc0).
+
+% rear
+set_map(Fn, Set) ->
+    Map = fun(X, Acc) -> sets:add_element(Fn(X), Acc) end,
+    sets:fold(Map, sets:new(), Set).
+
+% rear
+reversal_distance(S1, S2, Dist, Memo0) ->
+    io:format("~w: ~w~n", [Dist, maps:size(Memo0)]),
+    case sets:size(sets:intersection(S1, S2)) > 0 of
+        true -> Dist;
+        false ->
+            Fn = fun(X, {XS, M0}) ->
+                         {RX, M1} = all_reversals(X, M0),
+                         {sets:union(XS, RX), M1}
+                 end,
+            io:format("generating ns1~n"),
+            {NS1, Memo1} = lists:foldl(Fn, {sets:new(), Memo0}, sets:to_list(S1)),
+            io:format("generating ns2~n"),
+            {NS2, Memo2} = lists:foldl(Fn, {sets:new(), Memo1}, sets:to_list(S2)),
+            io:format("generated ns~n"),
+            case sets:size(sets:intersection(S1, NS2)) > 0 of
+                true -> Dist + 1;
+                false ->
+                    case sets:size(sets:intersection(NS1, S2)) > 0 of
+                        true -> Dist + 1;
+                        false ->
+                            case sets:size(sets:intersection(NS1, NS2)) > 0 of
+                                true -> Dist + 2;
+                                false ->
+                                    reversal_distance(NS1, NS2, Dist + 2, Memo2)
+                            end
+                    end
+            end
+    end.

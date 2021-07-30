@@ -172,7 +172,12 @@ command_list() ->
          "sset" =>
          #{description => "count the number of subsets for a give set size",
            arg => "N",
-           function => fun sset/1}}},
+           function => fun sset/1},
+         "rear" =>
+         #{description => "determine the number of steps to unreverse the "
+                          "given strings",
+           arg => "PATH",
+           function => fun rear/1}}},
       "rna" =>
       #{description => "operations on RNA",
         commands =>
@@ -493,6 +498,18 @@ inod([N]) ->
 sset([N]) ->
     io:format("~w~n", [rosalind_math:subset_count(list_to_integer(N))
                        rem 1_000_000]).
+
+rear([Path]) ->
+    {ok, Lines} = rosalind_file:multiline_file(Path),
+    Parts = lists:map(fun(S) -> string:split(S, " ", all) end, Lines),
+    Nums = lists:map(fun(N) -> lists:map(fun list_to_integer/1, N) end,
+                     Parts),
+    SNums = lists:map(fun integer_to_list/1, rear_iter(Nums, [])),
+    io:format("~s~n", [string:join(SNums, " ")]).
+
+rear_iter([], Acc) -> lists:reverse(Acc);
+rear_iter([H,I|T], Acc) ->
+    rear_iter(T, [rosalind_math:count_reversals(H, I)|Acc]).
 
 %% string functions
 
